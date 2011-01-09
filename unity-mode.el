@@ -23,7 +23,9 @@
 (defgroup unity-mode nil
   "Unity minor mode.")
 
-(defvar unity-test-file-prefix "test_")
+;;; defvars...
+
+(defvar unity-test-file-prefix "Test")
 
 (defvar unity-mock-file-prefix "mock_")
 
@@ -31,7 +33,7 @@
 (setq unity-prefix "Test-")
 
 (defvar unity-header-file-extension ".h")
-(setq unity-prefix "Test-")
+(setq unity-prefix "Test")
 
 (defcustom unity-rake-command "rake"
   "The command for rake"
@@ -50,15 +52,25 @@ Unit testing integration"
   :lighter "unity"
   :keymap  unity-mode-keymap)
 
+;;; defuns...
+
 (defun unity-is-a-test-file-p (file-name)
   "Returns true if the file is a test file"
   (interactive)
-  (string-match "[Tt]est.*\\.[cC]$" file-name))
+  (string-match
+   (concat unity-test-file-prefix
+           ".*"
+           unity-source-file-extension)
+   file-name))
 
 (defun unity-is-a-header-file-p (file-name)
   "Returns true if the file is a header file"
   (interactive)
-  (string-match ".*\\.[hH]$" file-name))
+  (string-match
+   (concat
+    ".*"
+    unity-header-file-extension)
+   file-name))
 
 (defun unity-parent-directory (directory)
   "Returns the directory of which directory is a child"
@@ -105,6 +117,36 @@ Unit testing integration"
    unity-source-file-extension
    unity-header-file-extension
    file-name))
+
+(defun unity-buffer-is-test-p ()
+  "Returns true if the current buffer is a test file"
+  (and (buffer-name)
+       (unity-is-a-test-file-p (buffer-name))))
+
+(defun unity-buffer-is-header-p ()
+  "Returns true if the current buffer is a header file"
+  (and (buffer-name)
+       (unity-is-a-header-file-p (buffer-name))))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 (defun unity-find-src-for-test-file (test-file-name)
   "Find the target for test-file-name"
@@ -199,18 +241,6 @@ Unit testing integration"
   "Runs the specified test, or the test file for the current buffer."
   (interactive)
   (unity-run-single-file (unity-find-test-for-src-file (buffer-file-name)) (unity-core-options ())))
-
-;;;###autoload
-(defun unity-buffer-is-test-p ()
-  "Returns true if the current buffer is a test file"
-  (and (buffer-file-name)
-       (unity-is-a-test-file-p (buffer-file-name))))
-
-;;;###autoload
-(defun unity-buffer-is-header-p ()
-  "Returns true if the current buffer is a header file"
-  (and (buffer-file-name)
-       (unity-is-a-header-file-p (buffer-file-name))))
 
 (defun unity-source-directory-has-src? (file-name)
   (file-directory-p (concat (unity-source-directory file-name) "/src")))
@@ -313,14 +343,6 @@ Unit testing integration"
 (defun test-unity-src-to-header-file-name-with-small-h ()
   (interactive)
   (message (unity-src-to-header-file-name "/home/martyn/etc/src/source.c")))
-
-(defun unity-headerize-file-name (file-name)
-  "Returns a file name converted into header file name"
-  (unity-src-to-header-file-name file-name))
-
-(defun test-unity-headerize-file-name ()
-  (interactive)
-  (message (unity-headerize-file-name (buffer-file-name))))
 
 (defun unity-test-all ()
   (interactive)
@@ -598,6 +620,35 @@ last-run as ruby test (or spec)."
   (should (equal "file_name.h"
                  (unity-src-to-header-file-name "file_name.h"))))
 
+(ert-deftest unity-buffer-is-test-p-test ()
+  (save-excursion
+    (get-buffer-create  "test_file.c")
+    (set-buffer "test_file.c")
+    (should (equal "test_file.c"            
+                   (buffer-name)))
+    (should (unity-buffer-is-test-p))
+    
+    (get-buffer-create  "file.c")
+    (set-buffer "file.c")
+    (should (equal "file.c"            
+                   (buffer-name)))
+    (should-not (unity-buffer-is-test-p))))
+
+(ert-deftest unity-buffer-is-header-p-test ()
+  (save-excursion
+    (get-buffer-create  "file_name.h")
+    (set-buffer "file_name.h")
+    (should (equal "file_name.h"            
+                   (buffer-name)))
+    (should (unity-buffer-is-header-p))
+    
+    (get-buffer-create  "file_name.c")
+    (set-buffer "file_name.c")
+    (should (equal "file_name.c"            
+                   (buffer-name)))
+    (should-not (unity-buffer-is-header-p))))
+
 ;; (ert-deftest unity-find-src-for-test-file-correct-whatever ()
 ;;   (should (equal ""
-;;                  (unity-find-src-for-test-file "test_file_1.c"))))
+;;                  (unity-find-src-for-test-file "test_file.c"))))
+
