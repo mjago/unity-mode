@@ -5,12 +5,26 @@
 
  - [[http://sourceforge.net/apps/trac/unity/wiki][Unity (stable)]]   - Unit-Test framework 
  - [[http://sourceforge.net/apps/trac/cmock/wiki][CMock (stable)]]   - Mock Module Generation Framework for C 
- - [[http://sourceforge.net/apps/trac/ceedling/wiki][Ceedling (alpha]]  - Command-line build environment aimed primarily
+ - [[http://sourceforge.net/apps/trac/ceedling/wiki][Ceedling (alpha)]] - Command-line build environment aimed primarily
    at C-based projects
    - [[http://sourceforge.net/apps/trac/unity/wiki][Unity]] [[http://sourceforge.net/apps/trac/cmock/wiki][CMock]] [[http://sourceforge.net/apps/trac/ceedling/wiki][Ceedling]] written and maintained (C) [[http://sourceforge.net/users/greg-williams][Greg Williams]], [[http://sourceforge.net/users/mkarlesky][Mike Karlesky]], [[http://sourceforge.net/users/mvandervoord][Mark VanderVoord]]
 
 ** Features
- - To follow
-
-
-
+*** DONE Auto Ceedling configuration (display)
+*** TODO Finish Auto Ceedling configuration file generation
+*** TODO Finish assert snippets and internalise for non-yasnippet people
+*** TODO Finish keymap colour configuration
+*** TODO Finish test/src/header fast-key navigation toggling
+*** TODO Finish MCH pattern fast-key navigation toggling
+*** TODO Finish conception and design of project.org
+*** TODO Finish project.yml generation
+*** TODO Finish test activation sequences
+*** TODO Finish linked failure display
+*** TODO Start test summary display
+*** TODO Start continuous-testing hook
+*** TODO Start source dired selection
+*** TODO Start Triad/Diad auto-generation (and selection screen)
+*** TODO Consider light background keymapping
+*** TODO info (or org-mode?) Documentation
+*** TODO Check and fix windoze breakages
+*** TODO Screencast 
