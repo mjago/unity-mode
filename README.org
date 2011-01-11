@@ -1,16 +1,21 @@
 
 * Unity Minor Mode for Emacs (sub-alpha)
 
-** [[http://throwtheswitch.org/][What is it?]]
+
 *** Minor mode for integration with Unity and friends
 
-  - [[http://sourceforge.net/apps/trac/unity/wiki][Unity (stable)]]   - Unit-Test framework 
-  - [[http://sourceforge.net/apps/trac/cmock/wiki][CMock (stable)]]   - Mock Module Generation Framework for C 
-  - [[http://sourceforge.net/apps/trac/ceedling/wiki][Ceedling (alpha)]] - Command-line build environment aimed primarily
-    at C-based projects
-    - [[http://sourceforge.net/apps/trac/unity/wiki][Unity]] [[http://sourceforge.net/apps/trac/cmock/wiki][CMock]] [[http://sourceforge.net/apps/trac/ceedling/wiki][Ceedling]] written and maintained (C) [[http://sourceforge.net/users/greg-williams][Greg Williams]], [[http://sourceforge.net/users/mkarlesky][Mike Karlesky]], [[http://sourceforge.net/users/mvandervoord][Mark VanderVoord]]
+[[http://throwtheswitch.org/][  - Find out how to "Throw The Switch" with Unity CMock and Ceedling here!]]
+  - In a nutshell...
+    - Unity (stable) is a Unit-Test framework for the C language 
+    - CMock (stable) is a Mock Module Generation Framework for C 
+    - Ceedling (alpha) is a command-line build environment aimed
+      primarily at C-based projects
+    - Emacs unity-mode is an emacs minor mode whose aim is to
+      integrate efficiently with all three projects, and add some
+      literate configuration via org-mode.
+  - [[http://sourceforge.net/apps/trac/unity/wiki][Unity]] [[http://sourceforge.net/apps/trac/cmock/wiki][CMock]] [[http://sourceforge.net/apps/trac/ceedling/wiki][Ceedling]] written and maintained (C) [[http://sourceforge.net/users/greg-williams][Greg Williams]], [[http://sourceforge.net/users/mkarlesky][Mike Karlesky]], [[http://sourceforge.net/users/mvandervoord][Mark VanderVoord]]
 
-*** Features
+*** Unity-Mode Features
   - DONE Auto Ceedling configuration (display)
   - DONE Auto Ceedling configuration (path generation)
   - TODO Finish Auto Ceedling configuration file generation
