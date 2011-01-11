@@ -12,7 +12,7 @@
   (insert
    (unity-colour   "  Is this correct? (" "yellow")
    (unity-colour "ENTER " "green")
-   (unity-colour "confirms , " "yellow")
+   (unity-colour "confirms, " "yellow")
    (unity-colour "else correct in mini-buffer)" "yellow")))
 
 (defun unity-display-config-setting (buffer parameter param-name text)
@@ -49,6 +49,7 @@
 
 (defun unity-setup ()
   (interactive)
+  (setq unity-setup-performed-p nil)
   (save-excursion
     (setq buffer-name unity-temp-buffer)
     (let ((buffer (get-buffer-create buffer-name)))
@@ -61,94 +62,134 @@
           (unity-insert-heading
            "           Unity Mode Project Setup...")
           (unity-insert-heading "Directories...")
-
+          (setq unity-project-root-dir
+                (if (unity-search-for-project-root-by-rakefile
+                     default-directory)
+                    (unity-search-for-project-root-by-rakefile
+                     default-directory)
+                  default-directory))
           (setq
            unity-project-root-dir
            (unity-config-setting
             buffer 
             unity-project-root-dir
             "project-root:   "
-            "The Project Root Directory appears to be..."))
-
+            "The Project Root Directory is set to..."))
+          (setq unity-ceedling-root-dir
+           (if
+               (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
+                unity-project-root-dir)
+               (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
+                unity-project-root-dir)
+             (concat unity-project-root-dir "ceedling/")))
           (setq
            unity-ceedling-root-dir
            (unity-config-setting
             buffer
             unity-ceedling-root-dir
             "ceedling-root:  "
-            "The Ceedling Root Directory appears to be..."))
-
+            "The Ceedling Root Directory is set to..."))
+          (setq unity-unity-root-dir
+                (if (unity-check-for-unity-root-relative-to-ceedling-p
+                     unity-ceedling-root-dir)
+                    (concat unity-ceedling-root-dir "vendor/unity/")
+                  (concat unity-project-root-dir "unity/")))
           (setq
            unity-unity-root-dir
            (unity-config-setting
             buffer
             unity-unity-root-dir
             "unity-root:     "
-            "The Unity Root Directory appears to be..."))
+            "The Unity Root Directory is set to..."))
 
+          (setq unity-cmock-root-dir
+                (if (unity-check-for-cmock-root-relative-to-ceedling-p
+                     unity-ceedling-root-dir)
+                    (concat unity-ceedling-root-dir "vendor/cmock/")
+                  (concat unity-project-root-dir "cmock/")))
           (setq
            unity-cmock-root-dir
            (unity-config-setting
             buffer
             unity-cmock-root-dir
             "cmock-root:     "
-            "The CMock Root Directory appears to be..."))
+            "The CMock Root Directory is set to..."))
 
+          (setq unity-plugins-dir
+           (concat unity-ceedling-root-dir "plugins/"))
           (setq
            unity-plugins-dir
            (unity-config-setting
             buffer
             unity-plugins-dir
             "plugins-dir:    "
-            "The Plugins Directory appears to be..."))
+            "The Plugins Directory is set to..."))
 
+          (setq unity-custom-plugins-dir
+                (if (unity-check-for-custom-plugins-relative-to-ceedling-p
+                     unity-ceedling-root-dir)
+                    (concat unity-ceedling-root-dir "/custom_plugins")
+                  ""))
           (setq
            unity-custom-plugins-dir
            (unity-config-setting
             buffer
             unity-custom-plugins-dir
             "custom-plugins: "
-            "The Custom Plugins Directory appears to be..."))
+            "The Custom Plugins Directory is set to..."))
 
+          (setq unity-src-dir
+                (concat unity-project-root-dir "src/"))
           (setq
            unity-src-dir
            (unity-config-setting
             buffer
             unity-src-dir
             "C-source-dir:   "
-            "The Source Directory appears to be..."))
+            "The Source Directory is set to..."))
           
+          (setq unity-header-dir
+                (if (file-directory-p
+                     (concat unity-project-root-dir "inc/"))
+                    (concat unity-project-root-dir "inc/")
+                  (concat unity-project-root-dir "src/")))
           (setq
            unity-header-dir
            (unity-config-setting
             buffer 
             unity-header-dir
             "header-dir:     "
-            "The Header Directory appears to be..."))
+            "The Header Directory is set to..."))
           
+          (setq unity-test-dir
+                (concat unity-project-root-dir "test/"))
           (setq
            unity-test-dir
            (unity-config-setting
             buffer
             unity-test-dir
             "test-dir:       "
-            "The Test Directory appears to be..."))
+            "The Test Directory is set to..."))
 
+          (setq unity-mocks-dir
+                (concat unity-project-root-dir "mocks/"))
           (setq
            unity-mocks-dir
            (unity-config-setting
             buffer
             unity-mocks-dir
             "mocks-dir:      "
-            "The Mocks Directory appears to be..."))
+            "The Mocks Directory is set to..."))
 
+          (setq unity-build-dir
+                (concat unity-project-root-dir "build/"))
           (setq
            unity-build-dir
            (unity-config-setting
             buffer
             unity-build-dir
             "build-dir:      "
-            "The Build Directory appears to be..."))
+            "The Build Directory is set to..."))
 
           (unity-insert-heading "Extensions...")
 
@@ -158,7 +199,7 @@
             buffer
             unity-src-file-extension
             "source file extension:"
-            "The source file extension appears to be..."))
+            "The source file extension is set to..."))
 
           (setq
            unity-header-file-extension
@@ -166,7 +207,7 @@
             buffer
             unity-header-file-extension
             "header file extension:"
-            "The header file extension appears to be..."))
+            "The header file extension is set to..."))
 
           (unity-insert-heading "File prefixes...")
 
@@ -176,7 +217,7 @@
             buffer
             unity-test-file-prefix
             "test file prefix:     "
-            "The test file prefix appears to be..."))
+            "The test file prefix is set to..."))
 
           (setq
            unity-mock-file-prefix
@@ -184,7 +225,7 @@
             buffer
             unity-mock-file-prefix
             "mock file prefix:     "
-            "The mock file prefix appears to be..."))
+            "The mock file prefix is set to..."))
 
           (unity-insert-heading "MCH Filename suffixes...")
 
@@ -194,7 +235,7 @@
             buffer
             unity-model-file-suffix
             "model file suffix:    "
-            "The Model file suffix appears to be..."))
+            "The Model file suffix is set to..."))
 
           (setq
            unity-conductor-file-suffix
@@ -202,7 +243,7 @@
             buffer
             unity-conductor-file-suffix
             "conductor file suffix:"
-            "The Conductor file suffix appears to be..."))
+            "The Conductor file suffix is set to..."))
 
           (setq
            unity-hardware-file-suffix
@@ -210,7 +251,7 @@
             buffer
             unity-hardware-file-suffix
             "hardware file suffix: "
-            "The Hardware file suffix appears to be..."))
+            "The Hardware file suffix is set to..."))
 
           (setq
            unity-configurator-file-suffix
@@ -218,7 +259,7 @@
             buffer
             unity-configurator-file-suffix
             "configurator suffix:  "
-            "The Configurator file suffix appears to be..."))
+            "The Configurator file suffix is set to..."))
 
           (unity-insert-heading "Directory/File Generation...")
 

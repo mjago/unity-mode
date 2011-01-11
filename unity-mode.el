@@ -27,16 +27,8 @@
 
 ;;; defvars...
 
-(defvar unity-test-file-prefix "Test")
-(defvar unity-mock-file-prefix "mock_")
-(defvar unity-model-file-suffix "Model")
-(defvar unity-conductor-file-suffix "Conductor")
-(defvar unity-hardware-file-suffix "Hardware")
-(defvar unity-configurator-file-suffix "Configurator")
-(defvar unity-src-file-extension ".c")
-(defvar unity-header-file-extension ".h")
 (defvar unity-temp-buffer "*Unity-Buffer*")
-(defvar unity-buffer-name "*Unity-Test*")
+(defvar unity-setup-performed-p nil)
 
 ;;; setq...
 
@@ -52,54 +44,6 @@
            'face
            '(foreground-color . "light blue") msg) msg)))
 
-(defun unity-colour (msg colour)
-  (progn
-    ;;            (let ((msg "  The Project Root Directory appears to be...\n\n  "))
-    (let ((msg msg))
-      (put-text-property 0 (length msg)
-                         'face
-                         (or (if (equal colour "green")
-                                 '(foreground-color . "green"))
-                             (if (equal colour "dark green")
-                                 '(foreground-color . "dark green"))
-                             (if (equal colour "red")
-                                 '(foreground-color . "red"))
-                             (if (equal colour "yellow")
-                                 '(foreground-color . "yellow"))
-                             (if (equal colour "light blue")
-                                 '(foreground-color . "light blue")))
-                         msg)
-      msg)))
-
-;; (insert (put-text-property
-;;           0
-;;           4
-;;           'face
-;;           '(foreground-color . "green")
-;;           "test"
-;;          )))
-
-(setq unity-root-appears-to-be-message
-      "  The Project Root Directory appears to be...\n\n  ")
-
-(setq unity-buffer-root-appears-to-be-message
-      (progn (let ((msg "  The Project Root Directory appears to be...\n\n  "))
-               (put-text-property 0 (length msg) 'face '(foreground-color . "green") msg)
-               msg)))
-(setq unity-project-root-message
-      (progn (let ((msg "project-root:\n  "))
-               (put-text-property 0 13 'face '(foreground-color . "green") msg)
-               msg)))
-(setq unity-is-this-correct-message
-      (progn
-        (let ((msg "  Is this correct?\n"))
-          (put-text-property 0 18 'face '(foreground-color . "yellow") msg)
-          msg)))
-(setq unity-hit-return-to-confirm-message
-      (progn
-        (let ((msg "  Hit RETURN to confirm\n"))
-          (put-text-property 0 23 'face '(foreground-color . "green") msg)
-          msg)))
 (setq unity-test-ok-message
       (progn
         (let ((msg "OK"))
@@ -152,6 +96,36 @@
   :type 'string
   :group 'unity-mode)
 (defcustom unity-build-dir "/home/martyn/ceedling5/examples/temp_sensor/build/" "Build Files Directory"
+  :type 'string
+  :group 'unity-mode)
+(defcustom unity-test-file-prefix "test_" "Test File Prefix"
+  :type 'string
+  :group 'unity-mode)
+(defcustom unity-mock-file-prefix "mock_" "Mock File Prefix"
+  :type 'string
+  :group 'unity-mode)
+(defcustom unity-model-file-suffix "_model"
+  "Model File Suffix (as in some[_model].c)"
+  :type 'string
+  :group 'unity-mode)
+(defcustom unity-conductor-file-suffix "_condx"
+  (concat "Conductor File Suffix (as in some" unity-conductor-file-suffix ".c)")
+  :type 'string
+  :group 'unity-mode)
+(defcustom unity-hardware-file-suffix "_hware"
+  (concat "Hardware File Suffix (as in some" unity-hardware-file-suffix ".c)")
+  :type 'string
+  :group 'unity-mode)
+(defcustom unity-configurator-file-suffix "Configurator"
+  (concat "Configurator File Suffix (as in some" unity-configurator-file-suffix ".c)")
+  :type 'string
+  :group 'unity-mode)
+(defcustom unity-src-file-extension ".c"
+  "C Source File Extension"
+  :type 'string
+  :group 'unity-mode)
+(defcustom unity-header-file-extension ".h"
+  "C Header File Extension" 
   :type 'string
   :group 'unity-mode)
 
@@ -349,8 +323,6 @@ Unit testing integration"
         (replace-regexp-in-string replace-regex "" relative-file-name)
         (unity-search-for-test-directory file-name))))))
 
-
-
 (defun unity-target-src-file-p (file-name)
   "Returns"
   (string-match
@@ -435,13 +407,19 @@ Unit testing integration"
        "/src")))) test-file-name))
 
 (defun unity-search-for-project-root-by-rakefile (&optional directory)
-  "Finds the root directory of the project by walking the directory tree until it finds a rake file."
-  (interactive)
+  "Attempts to find the root directory of the project by walking up the directory tree until it finds a rake file"
   (let ((directory (file-name-as-directory (or directory default-directory))))
     (cond ((unity-root-directory-p directory) nil)
           ((file-exists-p (concat directory "rakefile.rb")) directory)
           (t (unity-search-for-project-root-by-rakefile (file-name-directory (directory-file-name directory)))))))
 
+(defun unity-search-for-ceedling-root-by-project-yml (&optional directory)
+  "Attempts to find the ceedling root directory of the project by walking up the directory tree until it finds a project.yml file"
+  (let ((directory (file-name-as-directory (or directory default-directory))))
+    (cond ((unity-root-directory-p directory) nil)
+          ((file-exists-p (concat directory "project.yml")) directory)
+          (t (unity-search-for-project-root-by-rakefile (file-name-directory (directory-file-name directory)))))))
+   
 ;; (defun test-unity-is-a-header-file-p-detects-header ()
 ;;   (interactive)
 ;;   (if (unity-is-a-header-file-p "header.h")
@@ -558,7 +536,7 @@ Unit testing integration"
   "Run buffer's file as test, first visible window file or
 last-run as ruby test (or spec)."
   (interactive)
-  (setq unity-buffer (get-buffer-create unity-buffer-name))
+  (setq unity-buffer (get-buffer-create unity-temp-buffer))
   ;;  (let ((test-file (find-unity-file)))
   (let ((test-file "/home/martyn/ceedling5/trunk/examples/temp_sensor/test/TestAdcConductor.c"))
     (if t ;; test-file
@@ -643,9 +621,24 @@ last-run as ruby test (or spec)."
           (string-match "\\(.*\\)[^\n]" event)
           (message unity-test-fail-message-with-reason (match-string 1 event)))))))
 
-(defun xx ()
-  (interactive)
-  (unity-run-file))
+;; TODO what is the sensible way to do this?..
+(defun unity-colour (msg colour)
+  (progn
+    (let ((msg msg))
+      (put-text-property
+       0 (length msg) 'face
+       (or (if (equal colour "green")
+               '(foreground-color . "green"))
+           (if (equal colour "dark green")
+               '(foreground-color . "dark green"))
+           (if (equal colour "red")
+               '(foreground-color . "red"))
+           (if (equal colour "yellow")
+               '(foreground-color . "yellow"))
+           (if (equal colour "light blue")
+               '(foreground-color . "light blue")))
+       msg)
+      msg)))
 
 (provide 'unity-mode)
 
@@ -663,8 +656,8 @@ last-run as ruby test (or spec)."
   "Checks constants are defined"
   (should (equal unity-mode-keymap unity-mode-keymap)))
 
-(ert-deftest unity-check-unity-buffer-name-assignment ()
-  (should (equal unity-buffer-name "*Unity-Test*")))
+(ert-deftest unity-check-unity-temp-buffer-assignment ()
+  (should (equal unity-temp-buffer "*Unity-Buffer*")))
 
 (ert-deftest unity-check-unity-test-file-prefix-assignment ()
   (should (equal unity-test-file-prefix "Test")))
@@ -797,19 +790,36 @@ last-run as ruby test (or spec)."
     (should-not (unity-buffer-is-header-p))))
 
 (ert-deftest unity-search-for-project-root-by-rakefile-returns-correct-response ()
+  (should
+   (equal
+    "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/"
+    (unity-search-for-project-root-by-rakefile
+     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/test/TestAdcConductor.c")))
   (should (equal
-           "~/ceedling5/trunk/examples/temp_sensor/"
-           (unity-search-for-project-root-by-rakefile
-            "~/ceedling5/trunk/examples/temp_sensor/test/TestAdcConductor.c")))
+    "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/"
+    (unity-search-for-project-root-by-rakefile
+    "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/")))
   (should (equal
-           "~/ceedling5/trunk/examples/temp_sensor/"
+           "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
            (unity-search-for-project-root-by-rakefile
-            "~/ceedling5/trunk/examples/temp_sensor/")))
-  (should (equal
-           "~/ceedling5/trunk/"
-           (unity-search-for-project-root-by-rakefile
-            "~/ceedling5/trunk/examples/")))
+           "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples")))
   (should-not (unity-search-for-project-root-by-rakefile "~/")))
+
+;; (ert-deftest unity-search-for-ceedling-root-by-project-yml-returns-correct-response ()
+;;   (should
+;;    (equal
+;;     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/"
+;;     (unity-search-for-project-root-by-rakefile
+;;      "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/test/TestAdcConductor.c")))
+;;   (should (equal
+;;     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/"
+;;     (unity-search-for-project-root-by-rakefile
+;;     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/")))
+;;   (should (equal
+;;            "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
+;;            (unity-search-for-project-root-by-rakefile
+;;            "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples")))
+;;   (should-not (unity-search-for-project-root-by-rakefile "~/")))
 
 ;; (ert-deftest unity-find-src-for-test-file-correct-whatever ()
 ;;   (should (equal ""
@@ -824,7 +834,7 @@ last-run as ruby test (or spec)."
       (unity-search-for-project-root-by-rakefile
        (file-name-directory reference-file))))
 
-(ert-deftest unity-find-root-dir ()
+(ert-deftest unity-find-root-dir-test ()
   (should
    (equal "~/ceedling5/trunk/examples/temp_sensor/"
           (unity-find-root-dir
@@ -841,3 +851,40 @@ last-run as ruby test (or spec)."
      "~/ceedling5/trunk/examples/temp_sensor/test/AdcConductor.c")))
   (should-not (unity-find-root-dir "/")))
 
+(defun unity-check-for-ceedling-directories-p  (directory)
+  "Search directory for  relevant ceedling directories"
+  (and
+   (file-directory-p (concat directory "config"))
+   (file-directory-p (concat directory "lib"))
+   (file-directory-p (concat directory "plugins"))
+   (file-directory-p (concat directory "vendor"))))
+  
+(ert-deftest unity-check-for-ceedling-directories-p-test ()
+  (should (unity-check-for-ceedling-directories-p
+           "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"))
+  (should-not (unity-check-for-ceedling-directories-p
+           "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples"))
+  (should-not (unity-check-for-ceedling-directories-p "")))
+
+(defun unity-search-for-ceedling-root-by-presence-of-relevant-dirs (&optional directory)
+  "Attempts to find the Ceedling root directory of the project by walking up the directory tree until it finds Ceedling-relevant directories"
+  (let ((directory (file-name-as-directory (or directory default-directory))))
+    (cond ((unity-root-directory-p directory) nil)
+          (unity-check-for-ceedling-directories-p directory)
+          (t (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
+              (file-name-directory (directory)))))))
+  
+(ert-deftest unity-search-for-ceedling-root-by-presence-of-relevant-dirs-returns-correct-response ()
+  (should
+   (equal
+    "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
+    (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
+     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"))))
+
+
+;; (defun unity-search-for-project-root-by-rakefile (&optional directory)
+;;   "Attempts to find the root directory of the project by walking up the directory tree until it finds a rake file"
+;;   (let ((directory (file-name-as-directory (or directory default-directory))))
+;;     (cond ((unity-root-directory-p directory) nil)
+;;           ((file-exists-p (concat directory "rakefile.rb")) directory)
+;;           (t (unity-search-for-project-root-by-rakefile (file-name-directory (direc

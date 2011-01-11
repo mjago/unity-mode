@@ -11,6 +11,7 @@
 
 ** Features
  - DONE Auto Ceedling configuration (display)
+ - DONE Auto Ceedling configuration (path generation)
  - TODO Finish Auto Ceedling configuration file generation
  - TODO Finish assert snippets and internalise for non-yasnippet people
  - TODO Finish keymap colour configuration
