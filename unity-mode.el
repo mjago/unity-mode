@@ -1,6 +1,8 @@
 ;;; unity-mode.el --- minor mode for Unity, CMock, and Ceedling
 ;; unit-testing, mocking, configuration integration.
 
+(require 'unity-auto-config)
+
 (defconst unity-mode-abbrev-table (make-abbrev-table))
 
 (defconst unity-mode-keymap (make-sparse-keymap) "Keymap used in unity mode")
@@ -27,6 +29,10 @@
 
 (defvar unity-test-file-prefix "Test")
 (defvar unity-mock-file-prefix "mock_")
+(defvar unity-model-file-suffix "Model")
+(defvar unity-conductor-file-suffix "Conductor")
+(defvar unity-hardware-file-suffix "Hardware")
+(defvar unity-configurator-file-suffix "Configurator")
 (defvar unity-src-file-extension ".c")
 (defvar unity-header-file-extension ".h")
 (defvar unity-temp-buffer "*Unity-Buffer*")
@@ -115,8 +121,37 @@
   :type 'string
   :group 'unity-mode)
 
-(defcustom unity-project-root-dir "/home/martyn/ceedling5/trunk/examples/temp_sensor/")
-  "Project Root Directory"
+(defcustom unity-project-root-dir "/home/martyn/ceedling5/trunk/examples/temp_sensor/" "Project Root Directory"
+  :type 'string
+  :group 'unity-mode)
+(defcustom unity-ceedling-root-dir "/home/martyn/ceedling5/trunk/" "Ceedling Root Directory"
+  :type 'string
+  :group 'unity-mode)
+(defcustom unity-unity-root-dir "/home/martyn/ceedling5/trunk/vendor/unity/" "Unity Root Directory"
+  :type 'string
+  :group 'unity-mode)
+(defcustom unity-cmock-root-dir "/home/martyn/ceedling5/trunk/vendor/cmock/" "CMock Root Directory"
+  :type 'string
+  :group 'unity-mode)
+(defcustom unity-plugins-dir "/home/martyn/ceedling5/trunk/plugins/" "Plugins Directory"
+  :type 'string
+  :group 'unity-mode)
+(defcustom unity-custom-plugins-dir "/home/martyn/ceedling5/trunk/custom_plugins/" "Custom Plugins Directory"
+  :type 'string
+  :group 'unity-mode)
+(defcustom unity-src-dir "/home/martyn/ceedling5/trunk/examples/temp_sensor/src/" "Source Directory"
+  :type 'string
+  :group 'unity-mode)
+(defcustom unity-test-dir "/home/martyn/ceedling5/trunk/examples/temp_sensor/test/" "Test Files Directory"
+  :type 'string
+  :group 'unity-mode)
+(defcustom unity-header-dir "/home/martyn/ceedling5/trunk/examples/temp_sensor/inc/" "Header Files Directory"
+  :type 'string
+  :group 'unity-mode)
+(defcustom unity-mocks-dir "/home/martyn/ceedling5/trunk/examples/temp_sensor/mocks" "Mock Files Directory"
+  :type 'string
+  :group 'unity-mode)
+(defcustom unity-build-dir "/home/martyn/ceedling5/examples/temp_sensor/build/" "Build Files Directory"
   :type 'string
   :group 'unity-mode)
 
@@ -806,48 +841,3 @@ last-run as ruby test (or spec)."
      "~/ceedling5/trunk/examples/temp_sensor/test/AdcConductor.c")))
   (should-not (unity-find-root-dir "/")))
 
-(defun insert-unity-heading()
-  (insert
-   (unity-colour "\n           Unity Mode\n\n" "light blue")
-   (unity-colour "Project Directory Structure Setup\n\n" "light blue")))
-  
-(defun unity-display-root-directory-buffer ()
-  (interactive)
-  (save-excursion
-    (setq buffer-name unity-temp-buffer)
-    (let ((buffer (get-buffer-create buffer-name)))
-      (switch-to-buffer buffer)
-      (with-current-buffer buffer
-        (setq buffer-read-only t)
-        (let ((inhibit-read-only t))
-          (buffer-disable-undo)
-          (erase-buffer)
-           (insert-unity-heading)
-          (insert
-           (unity-colour "The Project Root Directory appears to be...\n\n" "green")
-           "  " unity-project-root-dir "\n\n"
-           (unity-colour "  Is this correct?" "green")
-           (unity-colour "\n\n  (ENTER " "yellow")
-           (unity-colour "to confirm , " "green")
-           (unity-colour "otherwise correct in the mini-buffer)" "green")))
-          (setq unity-project-root-dir
-                (read-from-minibuffer unity-project-root-dir))
-          (let ((inhibit-read-only t))
-            (erase-buffer)
-            (insert-unity-heading)
-            (insert
-             unity-project-root-message
-           "  " unity-project-root-dir "\n\n"
-           (unity-colour "The Project Root Directory appears to be...\n\n" "green")
-           "  " unity-project-root-dir "\n\n"
-           (unity-colour "  Is this correct?" "green")
-           (unity-colour "\n\n  (ENTER " "yellow")
-           (unity-colour "to confirm , " "green")
-           (unity-colour "otherwise correct in the mini-buffer)" "green")))
-          (setq unity-project-root-dir
-                (read-from-minibuffer unity-project-root-dir))
-          (kill-buffer unity-temp-buffer)))))
-
-
-  (ert-deftest unity-display-root-directory-buffer-works-correctly ()
-    (unity-display-root-directory-buffer))
