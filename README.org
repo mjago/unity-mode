@@ -4,7 +4,8 @@
 
 *** Minor mode for integration with Unity and friends
 
-[[http://throwtheswitch.org/][  - Find out how to "Throw The Switch" with Unity CMock and Ceedling here!]]
+[[http://throwtheswitch.org/][   Find out how to 'Throw The Switch' with Unity CMock and Ceedling here!]]
+
   - In a nutshell...
     - Unity (stable) is a Unit-Test framework for the C language 
     - CMock (stable) is a Mock Module Generation Framework for C 
@@ -16,10 +17,10 @@
   - [[http://sourceforge.net/apps/trac/unity/wiki][Unity]] [[http://sourceforge.net/apps/trac/cmock/wiki][CMock]] [[http://sourceforge.net/apps/trac/ceedling/wiki][Ceedling]] written and maintained (C) [[http://sourceforge.net/users/greg-williams][Greg Williams]], [[http://sourceforge.net/users/mkarlesky][Mike Karlesky]], [[http://sourceforge.net/users/mvandervoord][Mark VanderVoord]]
 
 *** Unity-Mode Features
-  - DONE Auto Ceedling configuration (display)
-  - DONE Auto Ceedling configuration (path generation)
-  - TODO Finish Auto Ceedling configuration file generation
-  - TODO Finish assert snippets and internalise for non-yasnippet people
+  - DONE Auto Unity-Mode configuration (display)
+  - DONE Auto Unity-Mode configuration (path generation)
+  - TODO Finish Auto Unity-Mode configuration file generation
+  - TODO Finish assertion snippets and internalise for non-yasnippets people
   - TODO Finish keymap colour configuration
   - TODO Finish test/src/header fast-key navigation toggling
   - TODO Finish MCH pattern fast-key navigation toggling
@@ -32,6 +33,6 @@
   - TODO Start source dired selection
   - TODO Start Triad/Diad auto-generation (and selection screen)
   - TODO Consider light background keymapping
-  - TODO info (or org-mode?) Documentation
+  - TODO Org-Mode and/or Info Documentation
   - TODO Check and fix windoze breakages
-  - TODO Do a Screencast 
+  - TODO Do a Screencast for the benefit of non-emacsers :)
