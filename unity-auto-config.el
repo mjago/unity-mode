@@ -76,12 +76,12 @@
             "project-root:   "
             "The Project Root Directory is set to..."))
           (setq unity-ceedling-root-dir
-           (if
-               (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
-                unity-project-root-dir)
-               (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
-                unity-project-root-dir)
-             (concat unity-project-root-dir "ceedling/")))
+                (if
+                    (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
+                     unity-project-root-dir)
+                    (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
+                     unity-project-root-dir)
+                  (concat unity-project-root-dir "ceedling/")))
           (setq
            unity-ceedling-root-dir
            (unity-config-setting
@@ -116,7 +116,7 @@
             "The CMock Root Directory is set to..."))
 
           (setq unity-plugins-dir
-           (concat unity-ceedling-root-dir "plugins/"))
+                (concat unity-ceedling-root-dir "plugins/"))
           (setq
            unity-plugins-dir
            (unity-config-setting
@@ -279,7 +279,15 @@
                        reply
                        "generate rakefile:           "
                        "Auto-Generate rakefile?")
-                      ())))
+                      (progn
+                        (unity-rakefile-backup
+                         (concat unity-project-root-dir "rakefile.rb"))
+                        (unity-write-rakefile
+                         (concat unity-project-root-dir "rakefile.rb")
+                         (unity-rakefile-set-target
+                          unity-rakefile
+                          (concat unity-ceedling-root-dir "lib/rakefile.rb")
+                          ))))))
 
           (let ((reply "yes"))
             (setq reply
@@ -299,8 +307,35 @@
                        "Auto-Generate project.yml?")
                       ())))
           
-        (unity-insert-heading "           Project Setup Complete - Hit ENTER..."))
+          (unity-insert-heading "           Project Setup Complete - Hit ENTER..."))
         (read-from-minibuffer "Finished! Hit ENTER..."))
       (kill-buffer unity-temp-buffer))))
 
+
+(defun unity-write-rakefile (rakefile-path rakefile-data)
+  "Writes generated rakefile to project root
+
+  (unity-write-rakefile RAKEFILE-PATH RAKEFILE-DATA)
+
+  Return a new string containing the rakefile contents with ceedling-rakefile-target.rb replaced with TARGET."
+    
+    (save-excursion
+      (set-buffer (get-buffer-create "*rakefile.rb*"))
+      (erase-buffer)
+      (insert rakefile-data)
+      (write-file rakefile-path t)
+      (kill-buffer)))
+
+;; org gen...
+;;         insert-file-contents
+
+(defun unity-test-rakefile ()
+  (interactive)
+  (unity-rakefile-backup
+    (concat unity-project-root-dir "rakefile.rb"))
+  (unity-write-rakefile
+   (concat unity-project-root-dir "rakefile.rb")
+   (unity-rakefile-set-target
+    unity-rakefile
+    (concat unity-ceedling-root-dir "lib/rakefile.rb"))))
 

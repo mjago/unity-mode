@@ -111,15 +111,15 @@
   :type 'string
   :group 'unity-mode)
 (defcustom unity-conductor-file-suffix "_condx"
-  (concat "Conductor File Suffix (as in some" unity-conductor-file-suffix ".c)")
+  (concat "Conductor File Suffix (as in some[unity-conductor-file-suffix].c)")
   :type 'string
   :group 'unity-mode)
 (defcustom unity-hardware-file-suffix "_hware"
-  (concat "Hardware File Suffix (as in some" unity-hardware-file-suffix ".c)")
+  (concat "Hardware File Suffix (as in some[unity-hardware-file-suffix].c)")
   :type 'string
   :group 'unity-mode)
 (defcustom unity-configurator-file-suffix "Configurator"
-  (concat "Configurator File Suffix (as in some" unity-configurator-file-suffix ".c)")
+  (concat "Configurator File Suffix (as in some[unity-configurator-file-suffix].c)")
   :type 'string
   :group 'unity-mode)
 (defcustom unity-src-file-extension ".c"
@@ -965,12 +965,18 @@ last-run as ruby test (or spec)."
   (should (unity-check-for-custom-plugins-relative-to-ceedling-p
            "~/ceedling5/trunk/")))
 
-(ert-deftest unity-rakefile-generation ()
+(ert-deftest unity-rakefile-definition ()
   (should (equal "\n\nPROJECT_ROOT  = File.expand_path( File.dirname(__FILE__) )\n
 load File.join(File.dirname(__FILE__),'ceedling-rakefile-target.rb')\n
 task :default => [:clobber, 'test:all']\n\n" unity-rakefile )))
 
 (defun unity-rakefile-set-target (rakefile target)
+  "Takes template project rakefile and sets correct ceedling rakefile target which will typically be \"ceedling-root-dir/lib/rakefile.rb\".
+
+(unity-rakefile-set-target RAKEFILE TARGET)
+
+Return a new string containing the rakefile contents with ceedling-rakefile-target.rb replaced with TARGET."
+
   (replace-regexp-in-string
    "ceedling-rakefile-target.rb"
    target
