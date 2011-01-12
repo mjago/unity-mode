@@ -362,26 +362,6 @@ Argument DIRECTORY-LIST is a list of directories to generate
   (loop for i in directory-list
         collect(make-directory i)))
 
-
-(ert-deftest unity-generate-directories-test ()
-  (let ((ert-test-dir "~/.emacs.d/martyn/martyn/unity-mode/ert-test/"))
-    (if (file-directory-p ert-test-dir)
-        (delete-directory ert-test-dir))
-    
-    (make-directory ert-test-dir)
-    (setq unity-directory-list 
-          `(,(concat ert-test-dir "test-1/")
-            ,(concat ert-test-dir "test-2/")
-            ,(concat ert-test-dir "test-3/")))
-
-    (unity-generate-directories unity-directory-list)
-    (loop for i in unity-directory-list
-          collect(should (file-directory-p i)))
-    (loop for i in unity-directory-list
-          collect(delete-directory i))
-
-    (delete-directory ert-test-dir)))
-
 (defun unity-build-missing-directories-list (directory-list)
   (let ((missing-dirs '()))
     (loop for i in directory-list
@@ -389,56 +369,3 @@ Argument DIRECTORY-LIST is a list of directories to generate
                      (add-to-list  'missing-dirs i)))
     missing-dirs))
 
-(ert-deftest unity-build-missing-directories-list-test ()
-  (let ((ert-test-dir "~/.emacs.d/martyn/martyn/unity-mode/ert-test/"))
-    (if (file-directory-p ert-test-dir)
-        (delete-directory ert-test-dir))
-
-    (unity-generate-directories
-     `(,(concat ert-test-dir)
-       ,(concat ert-test-dir "test-3/")))
-
-    (should
-     (equal
-      `(,(concat ert-test-dir "test-2/")
-        ,(concat ert-test-dir "test-1/"))
-      (unity-build-missing-directories-list
-       `(,(concat ert-test-dir "test-1/")
-         ,(concat ert-test-dir "test-2/")
-         ,(concat ert-test-dir "test-3/")))))
-
-    (should
-     (equal
-      `(,unity-mocks-dir)
-      (unity-build-missing-directories-list
-       `(,unity-project-root-dir
-         ,unity-ceedling-root-dir
-         ,unity-unity-root-dir
-         ,unity-ceedling-root-dir
-         ,unity-cmock-root-dir
-         ,unity-plugins-dir
-         ,unity-custom-plugins-dir
-         ,unity-src-dir
-         ,unity-header-dir
-         ,unity-test-dir
-         ,unity-mocks-dir
-         ,unity-build-dir))))
-
-    (loop for i in 
-          `(,(concat ert-test-dir "test-3/"))
-          collect(delete-directory i))))
-
-;; (unity-generate-directories
-;;  (unity-build-missing-directories-list
-;;   `(,unity-project-root-dir
-;;     ,unity-ceedling-root-dir
-;;     ,unity-unity-root-dir
-;;     ,unity-ceedling-root-dir
-;;     ,unity-cmock-root-dir
-;;     ,unity-plugins-dir
-;;     ,unity-custom-plugins-dir
-;;     ,unity-src-dir
-;;     ,unity-header-dir
-;;     ,unity-test-dir
-;;     ,unity-mocks-dir
-;;     ,unity-build-dir
