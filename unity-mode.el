@@ -2,6 +2,7 @@
 ;; unit-testing, mocking, configuration integration.
 
 (require 'unity-auto-config)
+(require 'unity-rakefile)
 
 (defconst unity-mode-abbrev-table (make-abbrev-table))
 
@@ -29,7 +30,8 @@
 
 (defvar unity-temp-buffer "*Unity-Buffer*")
 (defvar unity-setup-performed-p nil)
-
+(defvar unity-ruby-file-extension ".rb")
+(defvar unity-test-time '(19750 . 10)) ;;used for ert tests
 ;;; setq...
 
 (setq unity-buffer-heading-message
@@ -169,6 +171,16 @@ Unit testing integration"
    (concat
     "^.*\\"
     unity-header-file-extension
+    "$")
+   (file-name-nondirectory file-name)))
+
+(defun unity-is-a-ruby-file-p (file-name)
+  "Returns true if the file is a ruby file"
+  (interactive)
+  (string-match
+   (concat
+    "^.*\\"
+    unity-ruby-file-extension
     "$")
    (file-name-nondirectory file-name)))
 
@@ -419,7 +431,7 @@ Unit testing integration"
     (cond ((unity-root-directory-p directory) nil)
           ((file-exists-p (concat directory "project.yml")) directory)
           (t (unity-search-for-project-root-by-rakefile (file-name-directory (directory-file-name directory)))))))
-   
+
 ;; (defun test-unity-is-a-header-file-p-detects-header ()
 ;;   (interactive)
 ;;   (if (unity-is-a-header-file-p "header.h")
@@ -660,7 +672,7 @@ last-run as ruby test (or spec)."
   (should (equal unity-temp-buffer "*Unity-Buffer*")))
 
 (ert-deftest unity-check-unity-test-file-prefix-assignment ()
-  (should (equal unity-test-file-prefix "Test")))
+  (should (equal unity-test-file-prefix "test_")))
 
 (ert-deftest unity-check-unity-mock-file-prefix-assignment ()
   (should (equal unity-mock-file-prefix "mock_")))
@@ -670,6 +682,9 @@ last-run as ruby test (or spec)."
 
 (ert-deftest unity-header-file-extension-assignment ()
   (should (equal unity-header-file-extension ".h")))
+
+(ert-deftest unity-ruby-file-extension-assignment ()
+  (should (equal unity-ruby-file-extension ".rb")))
 
 (ert-deftest unity-is-a-test-file-p-returns-correct-result ()
   (should (unity-is-a-test-file-p "Test_file.c"))
@@ -691,6 +706,13 @@ last-run as ruby test (or spec)."
   (should (unity-is-a-header-file-p "file.h"))
   (should (unity-is-a-header-file-p "~/inc/file.h"))
   (should-not (unity-is-a-header-file-p "~/docs/file.html")))
+
+(ert-deftest unity-is-a-ruby-file-p-returns-correct-result ()
+  (should (unity-is-a-ruby-file-p "file.rb"))
+  (should-not (unity-is-a-ruby-file-p "file.c"))
+  (should-not (unity-is-a-ruby-file-p "file"))
+  (should (unity-is-a-ruby-file-p "~/inc/file.rb"))
+  (should-not (unity-is-a-ruby-file-p "~/docs/file.rbcd")))
 
 (ert-deftest unity-is-a-code-file-p-returns-expected ()
   (should (unity-is-a-code-file-p  "~/test/Test_file.c"))
@@ -731,18 +753,18 @@ last-run as ruby test (or spec)."
 
 (ert-deftest unity-create-source-file-name-returns-correct-file-name ()
   (should (equal "file_name.c"
-                 (unity-create-source-file-name "Testfile_name.c")))
+                 (unity-create-source-file-name "test_file_name.c")))
   (should (equal "file_name.c"
-                 (unity-create-source-file-name "Testfile_name")))
+                 (unity-create-source-file-name "test_file_name")))
   (should (equal "~/file_name.c"
-                 (unity-create-source-file-name "~/Testfile_name.c"))))
+                 (unity-create-source-file-name "~/test_file_name.c"))))
 
 (ert-deftest unity-create-test-file-name-returns-correct-file-name ()
-  (should (equal "Testfile_name.c"
+  (should (equal "test_file_name.c"
                  (unity-create-test-file-name "file_name.c")))
-  (should (equal "Testfile_name.c"
+  (should (equal "test_file_name.c"
                  (unity-create-test-file-name "file_name")))
-  (should (equal "~/Testfile_name.c"
+  (should (equal "~/test_file_name.c"
                  (unity-create-test-file-name "~/file_name.c"))))
 
 (ert-deftest unity-header-to-src-file-name-returns-correct-file-name ()
@@ -796,13 +818,13 @@ last-run as ruby test (or spec)."
     (unity-search-for-project-root-by-rakefile
      "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/test/TestAdcConductor.c")))
   (should (equal
-    "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/"
-    (unity-search-for-project-root-by-rakefile
-    "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/")))
+           "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/"
+           (unity-search-for-project-root-by-rakefile
+            "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/")))
   (should (equal
            "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
            (unity-search-for-project-root-by-rakefile
-           "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples")))
+            "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples")))
   (should-not (unity-search-for-project-root-by-rakefile "~/")))
 
 ;; (ert-deftest unity-search-for-ceedling-root-by-project-yml-returns-correct-response ()
@@ -852,35 +874,45 @@ last-run as ruby test (or spec)."
   (should-not (unity-find-root-dir "/")))
 
 (defun unity-check-for-ceedling-directories-p  (directory)
-  "Search directory for  relevant ceedling directories"
+  "Search directory for relevant ceedling directories"
   (and
    (file-directory-p (concat directory "config"))
    (file-directory-p (concat directory "lib"))
    (file-directory-p (concat directory "plugins"))
    (file-directory-p (concat directory "vendor"))))
-  
+
 (ert-deftest unity-check-for-ceedling-directories-p-test ()
   (should (unity-check-for-ceedling-directories-p
            "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"))
   (should-not (unity-check-for-ceedling-directories-p
-           "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples"))
+               "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples"))
   (should-not (unity-check-for-ceedling-directories-p "")))
 
 (defun unity-search-for-ceedling-root-by-presence-of-relevant-dirs (&optional directory)
   "Attempts to find the Ceedling root directory of the project by walking up the directory tree until it finds Ceedling-relevant directories"
   (let ((directory (file-name-as-directory (or directory default-directory))))
     (cond ((unity-root-directory-p directory) nil)
-          (unity-check-for-ceedling-directories-p directory)
+          ((unity-check-for-ceedling-directories-p directory) directory)
           (t (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
-              (file-name-directory (directory)))))))
-  
-(ert-deftest unity-search-for-ceedling-root-by-presence-of-relevant-dirs-returns-correct-response ()
-  (should
-   (equal
-    "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
-    (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
-     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"))))
+              (file-name-directory (directory-file-name directory)))))))
 
+(ert-deftest unity-search-for-ceedling-root-by-presence-of-relevant-dirs-returns-correct-response ()
+  (should (equal
+           "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
+           (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
+            "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/")))
+  (should (equal
+           "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
+           (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
+            "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples")))
+  (should-not (equal
+               "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
+               (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
+                "~/.emacs.d/martyn/martyn/unity-mode/")))
+  (should-not (equal
+               "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
+               (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
+                ""))))
 
 ;; (defun unity-search-for-project-root-by-rakefile (&optional directory)
 ;;   "Attempts to find the root directory of the project by walking up the directory tree until it finds a rake file"
@@ -888,3 +920,98 @@ last-run as ruby test (or spec)."
 ;;     (cond ((unity-root-directory-p directory) nil)
 ;;           ((file-exists-p (concat directory "rakefile.rb")) directory)
 ;;           (t (unity-search-for-project-root-by-rakefile (file-name-directory (direc
+
+(defun unity-check-for-unity-root-relative-to-ceedling-p (directory)
+  (file-directory-p (concat directory "vendor/unity/")))
+
+(defun unity-check-for-custom-plugins-relative-to-ceedling-p (directory)
+  (file-directory-p (concat directory "custom_plugins/")))
+
+(ert-deftest unity-check-for-unity-root-relative-to-ceedling-p-test ()
+  (should (unity-check-for-unity-root-relative-to-ceedling-p
+           "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"))
+  (should-not (unity-check-for-unity-root-relative-to-ceedling-p
+               "~/.emacs.d/martyn/martyn/unity-mode/ceedling/"))
+  (should-not (unity-check-for-unity-root-relative-to-ceedling-p
+               "")))
+(defun unity-check-for-unity-root-relative-to-ceedling-p (directory)
+  (file-directory-p (concat directory "vendor/unity/")))
+
+(ert-deftest unity-check-for-unity-root-relative-to-ceedling-p-test ()
+  (should (unity-check-for-unity-root-relative-to-ceedling-p
+           "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"))
+  (should-not (unity-check-for-unity-root-relative-to-ceedling-p
+               "~/.emacs.d/martyn/martyn/unity-mode/ceedling/"))
+  (should-not (unity-check-for-unity-root-relative-to-ceedling-p
+               "")))
+
+(defun unity-check-for-cmock-root-relative-to-ceedling-p (directory)
+  (file-directory-p (concat directory "vendor/cmock/")))
+
+(ert-deftest unity-check-for-cmock-root-relative-to-ceedling-p-test ()
+  (should (unity-check-for-cmock-root-relative-to-ceedling-p
+           "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"))
+  (should-not (unity-check-for-cmock-root-relative-to-ceedling-p
+               "~/.emacs.d/martyn/martyn/unity-mode/ceedling/"))
+  (should-not (unity-check-for-cmock-root-relative-to-ceedling-p
+               "")))
+
+(defun unity-check-for-custom-plugins-relative-to-ceedling-p (directory)
+  (file-directory-p (concat directory "custom_plugins/")))
+
+(ert-deftest unity-check-for-custom-plugins-relative-to-ceedling-p-test ()
+  (should-not (unity-check-for-custom-plugins-relative-to-ceedling-p
+               "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"))
+  (should (unity-check-for-custom-plugins-relative-to-ceedling-p
+           "~/ceedling5/trunk/")))
+
+(ert-deftest unity-rakefile-generation ()
+  (should (equal "\n\nPROJECT_ROOT  = File.expand_path( File.dirname(__FILE__) )\n
+load File.join(File.dirname(__FILE__),'ceedling-rakefile-target.rb')\n
+task :default => [:clobber, 'test:all']\n\n" unity-rakefile )))
+
+(defun unity-rakefile-set-target (rakefile target)
+  (replace-regexp-in-string
+   "ceedling-rakefile-target.rb"
+   target
+   rakefile))
+
+(ert-deftest unity-rakefile-set-target-generates-correct-result ()
+  (should (equal "\n\nPROJECT_ROOT  = File.expand_path( File.dirname(__FILE__) )\n
+load File.join(File.dirname(__FILE__),'~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/lib/rakefile.rb')\n
+task :default => [:clobber, 'test:all']\n\n"
+                 (unity-rakefile-set-target
+                 unity-rakefile
+                 "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/lib/rakefile.rb"))))
+  (should (equal "\n\nPROJECT_ROOT  = File.expand_path( File.dirname(__FILE__) )\n
+load File.join(File.dirname(__FILE__),'../../lib/rakefile.rb')\n
+task :default => [:clobber, 'test:all']\n\n"
+                 (unity-rakefile-set-target
+                 unity-rakefile
+                 "../../lib/rakefile.rb")))
+
+(defun unity-rakefile-backup (old-rakefile &optional test-time)
+  (let ((temp (unity-generate-backup-name old-rakefile test-time)))
+    (if (not temp)
+        (error (concat old-rakefile  " not found!"))
+      (if (not test-time) (rename-file old-rakefile temp))
+      temp)))
+
+;; (ert-deftest unity-rakefile-backup-test ()
+;;   (should (equal "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/rakefile_Thu_Jan__6_17:46:50_2011.rb"
+;;                  (unity-rakefile-backup
+;;                   "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/rakefile.rb"
+;;                   unity-test-time))))
+
+(defun unity-generate-backup-name (name &optional test-time)
+  (if (unity-is-a-ruby-file-p name)
+    (replace-regexp-in-string
+     " " "_" (concat
+              (replace-regexp-in-string ".rb" "" name) "_"
+              (current-time-string test-time) ".rb"))))
+
+(ert-deftest unity-generate-backup-name-returns-correct-name ()
+  (should (equal "rakefile_Thu_Jan__6_17:46:50_2011.rb"
+           (unity-generate-backup-name  "rakefile.rb" unity-test-time)))
+  (should-not (unity-generate-backup-name  "rakefile.rbc" unity-test-time)))
+
