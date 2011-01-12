@@ -17,9 +17,10 @@
   - [[http://sourceforge.net/apps/trac/unity/wiki][Unity]] [[http://sourceforge.net/apps/trac/cmock/wiki][CMock]] [[http://sourceforge.net/apps/trac/ceedling/wiki][Ceedling]] written and maintained (C) [[http://sourceforge.net/users/greg-williams][Greg Williams]], [[http://sourceforge.net/users/mkarlesky][Mike Karlesky]], [[http://sourceforge.net/users/mvandervoord][Mark VanderVoord]]
 
 *** Unity-Mode Features
-  - DONE Auto Unity-Mode configuration (display)
-  - DONE Auto Unity-Mode configuration (path generation)
+  - DONE Auto Unity-Mode configuration 
+    - display, paths, directories, rakefile
   - TODO Finish Auto Unity-Mode configuration file generation
+    - project.org, project.yml
   - TODO Finish assertion snippets and internalise for non-yasnippets people
   - TODO Finish keymap colour configuration
   - TODO Finish test/src/header fast-key navigation toggling
