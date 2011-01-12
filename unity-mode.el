@@ -790,11 +790,11 @@ Return a new string containing the rakefile contents with ceedling-rakefile-targ
          (unity-create-src-file-name file-name)))
     (if (unity-file-exists-p temp-name "src-type")
         (if (not test)
-            (progn find-file
-                   (concat
-                    unity-src-dir
-                    temp-name)
-                   t)
+            (progn (find-file
+                    (concat
+                     unity-src-dir
+                     temp-name))
+                    t)
           temp-name))))
 
 (defun unity-switch-test-header-buffer (file-name &optional test)
@@ -862,8 +862,7 @@ Return a new string containing the rakefile contents with ceedling-rakefile-targ
 (defun unity-toggle-test-src-header-buffer ()
   "Toggle between test source file "
   (interactive)
-  (let ((file-name buffer-file-name))
-    (error file-name)
+  (let ((file-name (file-name-nondirectory buffer-file-name)))
     (cond ((unity-is-test-file-p file-name)
            (if (not (unity-switch-test-src-buffer file-name))
                (if (not (unity-switch-test-header-buffer file-name))
