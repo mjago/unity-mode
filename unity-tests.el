@@ -17,7 +17,7 @@
   (should (equal unity-temp-buffer "*Unity-Buffer*")))
 
 (ert-deftest unity-check-unity-test-file-prefix-assignment ()
-  (should (equal unity-test-file-prefix "test_")))
+  (should (equal unity-test-file-prefix "Test")))
 
 (ert-deftest unity-check-unity-mock-file-prefix-assignment ()
   (should (equal unity-mock-file-prefix "mock_")))
@@ -31,26 +31,26 @@
 (ert-deftest unity-ruby-file-extension-assignment ()
   (should (equal unity-ruby-file-extension ".rb")))
 
-(ert-deftest unity-is-a-test-file-p-returns-correct-result ()
-  (should (unity-is-a-test-file-p "Test_file.c"))
-  (should-not (unity-is-a-test-file-p "test_file.h"))
-  (should-not (unity-is-a-test-file-p "file.c"))
-  (should (unity-is-a-test-file-p "~/test/Test_file.c"))
-  (should-not (unity-is-a-test-file-p "~/docs/Test_file.ccc")))
+(ert-deftest unity-is-test-file-p-returns-correct-result ()
+  (should (unity-is-test-file-p "Test_file.c"))
+  (should-not (unity-is-test-file-p "Test_file.h"))
+  (should-not (unity-is-test-file-p "file.c"))
+  (should (unity-is-test-file-p "~/test/Test_file.c"))
+  (should-not (unity-is-test-file-p "~/docs/Test_file.ccc")))
 
-(ert-deftest unity-is-a-src-file-p-returns-correct-result ()
-  (should-not (unity-is-a-src-file-p "Test_file.c"))
-  (should-not (unity-is-a-src-file-p "file.h"))
-  (should (unity-is-a-src-file-p "file.c"))
-  (should (unity-is-a-src-file-p "~/src/src/file.c"))
-  (should-not (unity-is-a-src-file-p "~/build/file.cout")))
+(ert-deftest unity-is-src-file-p-returns-correct-result ()
+  (should-not (unity-is-src-file-p "Test_file.c"))
+  (should-not (unity-is-src-file-p "file.h"))
+  (should (unity-is-src-file-p "file.c"))
+  (should (unity-is-src-file-p "~/src/src/file.c"))
+  (should-not (unity-is-src-file-p "~/build/file.cout")))
 
-(ert-deftest unity-is-a-header-file-p-returns-correct-result ()
-  (should (unity-is-a-header-file-p "test_file.h"))
-  (should-not (unity-is-a-header-file-p "file.c"))
-  (should (unity-is-a-header-file-p "file.h"))
-  (should (unity-is-a-header-file-p "~/inc/file.h"))
-  (should-not (unity-is-a-header-file-p "~/docs/file.html")))
+(ert-deftest unity-is-header-file-p-returns-correct-result ()
+  (should (unity-is-header-file-p "Test_file.h"))
+  (should-not (unity-is-header-file-p "file.c"))
+  (should (unity-is-header-file-p "file.h"))
+  (should (unity-is-header-file-p "~/inc/file.h"))
+  (should-not (unity-is-header-file-p "~/docs/file.html")))
 
 (ert-deftest unity-is-a-ruby-file-p-returns-correct-result ()
   (should (unity-is-a-ruby-file-p "file.rb"))
@@ -98,18 +98,18 @@
 
 (ert-deftest unity-create-source-file-name-returns-correct-file-name ()
   (should (equal "file_name.c"
-                 (unity-create-source-file-name "test_file_name.c")))
+                 (unity-create-source-file-name "Testfile_name.c")))
   (should (equal "file_name.c"
-                 (unity-create-source-file-name "test_file_name")))
+                 (unity-create-source-file-name "Testfile_name")))
   (should (equal "~/file_name.c"
-                 (unity-create-source-file-name "~/test_file_name.c"))))
+                 (unity-create-source-file-name "~/Testfile_name.c"))))
 
 (ert-deftest unity-create-test-file-name-returns-correct-file-name ()
-  (should (equal "test_file_name.c"
+  (should (equal "Testfile_name.c"
                  (unity-create-test-file-name "file_name.c")))
-  (should (equal "test_file_name.c"
+  (should (equal "Testfile_name.c"
                  (unity-create-test-file-name "file_name")))
-  (should (equal "~/test_file_name.c"
+  (should (equal "~/Testfile_name.c"
                  (unity-create-test-file-name "~/file_name.c"))))
 
 (ert-deftest unity-header-to-src-file-name-returns-correct-file-name ()
@@ -130,9 +130,9 @@
 
 (ert-deftest unity-buffer-is-test-p-test ()
   (save-excursion
-    (get-buffer-create  "test_file.c")
-    (set-buffer "test_file.c")
-    (should (equal "test_file.c"            
+    (get-buffer-create  "Testfile.c")
+    (set-buffer "Testfile.c")
+    (should (equal "Testfile.c"            
                    (buffer-name)))
     (should (unity-buffer-is-test-p))
     
@@ -359,3 +359,60 @@ task :default => [:clobber, 'test:all']\n\n"
           `(,(concat ert-test-dir "test-3/"))
           collect(delete-directory i))))
 
+(ert-deftest unity-file-exists-p-test () 
+  (should (unity-file-exists-p "TestAdcConductor.c" "test-type"))
+  (should (unity-file-exists-p "TestAdcConductor.c" "test-type"))
+  (should (unity-file-exists-p "AdcConductor.c" "src-type"))
+  (should (unity-file-exists-p "AdcConductor.h" "header-type"))
+
+   (should (file-exists-p "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcConductor.c"))
+
+  )
+   
+(ert-deftest unity-switch-test-src-buffer-creates-correct-filename ()
+  (should
+   (equal
+     "AdcConductor.c"
+    (unity-switch-test-src-buffer
+     "TestAdcConductor.c" t))))
+
+(ert-deftest unity-switch-src-header-buffer-creates-correct-filename ()
+  (should
+   (equal
+     "AdcConductor.h"
+    (unity-switch-src-header-buffer "AdcConductor.c" t))))
+
+(ert-deftest unity-switch-test-header-buffer-creates-correct-filename ()
+  (should
+   (equal
+     "AdcConductor.h"
+    (unity-switch-test-header-buffer
+     "AdcConductor.c" t))))
+
+(ert-deftest unity-switch-src-test-buffer-creates-correct-filename ()
+  (should
+   (equal
+     "TestAdcConductor.c"
+    (unity-switch-src-test-buffer
+     "AdcConductor.c" t))))
+
+(ert-deftest unity-switch-header-test-buffer-creates-correct-filename ()
+  (should
+   (equal
+     "TestAdcConductor.c"
+    (unity-switch-header-test-buffer
+     "AdcConductor.h" t))))
+
+(ert-deftest unity-switch-header-src-buffer-creates-correct-filename ()
+  (should
+   (equal
+     "AdcConductor.c"
+    (unity-switch-header-src-buffer
+     "AdcConductor.h" t))))
+
+(ert-deftest unity-create-src-file-name-test ()
+  (should (equal "AdcConductor.c"
+    (unity-create-src-file-name "TestAdcConductor.c")))
+  (should-not (equal "AdcConductor"
+    (unity-create-src-file-name "testAdcConductor"))))
+    

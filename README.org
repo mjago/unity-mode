@@ -19,11 +19,11 @@
 *** Unity-Mode Features
   - DONE Auto Unity-Mode configuration 
     - display, paths, directories, rakefile
+  - DONE Finish test/src/header fast-key navigation toggling
   - TODO Finish Auto Unity-Mode configuration file generation
     - project.org, project.yml
   - TODO Finish assertion snippets and internalise for non-yasnippets people
   - TODO Finish keymap colour configuration
-  - TODO Finish test/src/header fast-key navigation toggling
   - TODO Finish MCH pattern fast-key navigation toggling
   - TODO Finish conception and design of project.org
   - TODO Finish project.yml generation
