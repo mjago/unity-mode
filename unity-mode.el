@@ -9,13 +9,14 @@
 
 (defconst unity-mode-keymap (make-sparse-keymap) "Keymap used in unity mode")
 
+(define-key unity-mode-keymap (kbd "C-; C-i") 'unity-toggle-test-ignored)
+(define-key unity-mode-keymap (kbd "C-; C-t") 'unity-toggle-test-src-header-buffer)
+(define-key unity-mode-keymap (kbd "C-; C-m") 'unity-toggle-MCH-buffer)
+
 (define-key unity-mode-keymap (kbd "C-; r") 'unity-test)
 (define-key unity-mode-keymap (kbd "C-; o") 'unity-test-only)
 (define-key unity-mode-keymap (kbd "C-; a") 'unity-test-all)
 (define-key unity-mode-keymap (kbd "C-; d") 'unity-test-delta)
-(define-key unity-mode-keymap (kbd "C-; i") 'unity-toggle-test-ignored)
-(define-key unity-mode-keymap (kbd "C-; t") 'unity-toggle-test-src-header-buffer)
-(define-key unity-mode-keymap (kbd "C-; m") 'unity-toggle-triad)
 (define-key unity-mode-keymap (kbd "C-; n") 'unity-new-menus)
 
 (defvar unity-mode-map nil) ; No local map
@@ -140,7 +141,6 @@ Unit testing integration"
 
 (defun unity-is-test-file-p (file-name)
   "Returns true if the file is a test file"
-  (interactive)
   (string-match
    (concat
     "^"
@@ -152,7 +152,6 @@ Unit testing integration"
 
 (defun unity-is-src-file-p (file-name)
   "Returns t if filename has a C extension and is not a testfile"
-  (interactive)
   (if (not (unity-is-test-file-p file-name))
       (string-match
        (concat
@@ -164,7 +163,6 @@ Unit testing integration"
 
 (defun unity-is-header-file-p (file-name)
   "Returns true if the file is a header file"
-  (interactive)
   (string-match
    (concat
     "^.*\\"
@@ -172,9 +170,41 @@ Unit testing integration"
     "$")
    (file-name-nondirectory file-name)))
 
+(defun unity-is-model-file-p (file-name)
+  "Returns true if FILE-NAME is a model file"
+  (string-match
+   (concat
+    "^.*"
+    unity-model-file-suffix
+    "\\"
+    unity-src-file-extension
+    "$")
+   (file-name-nondirectory file-name)))
+
+(defun unity-is-conductor-file-p (file-name)
+  "Returns true if FILE-NAME is a conductor file"
+  (string-match
+   (concat
+    "^.*"
+    unity-conductor-file-suffix
+    "\\"
+    unity-src-file-extension
+    "$")
+   (file-name-nondirectory file-name)))
+
+(defun unity-is-hardware-file-p (file-name)
+  "Returns true if FILE-NAME is a hardware file"
+  (string-match
+   (concat
+    "^.*"
+    unity-hardware-file-suffix
+    "\\"
+    unity-src-file-extension
+    "$")
+   (file-name-nondirectory file-name)))
+
 (defun unity-is-ruby-file-p (file-name)
   "Returns true if the file is a ruby file"
-  (interactive)
   (string-match
    (concat
     "^.*\\"
@@ -223,16 +253,29 @@ Unit testing integration"
 (defun unity-header-to-src-file-name (file-name)
   "Find the source file for a header file"
   (replace-regexp-in-string
-   (concat unity-header-file-extension "$")
+   (concat "\\" unity-header-file-extension "$")
    unity-src-file-extension
    file-name))
 
 (defun unity-src-to-header-file-name (file-name)
   "Find the header file for a source file"
   (replace-regexp-in-string
-   (concat unity-src-file-extension "$")
+   (concat "\\" unity-src-file-extension "$")
    unity-header-file-extension
    file-name))
+
+(defun unity-conductor-to-hardware-file-name (file-name)
+  "Return Hardware src name matching Conductor src or header name
+
+If argument FILE-NAME is not a Conductor src or header name,
+return original file-name"
+  
+  (replace-regexp-in-string
+   (concat unity-conductor-file-suffix "\\"
+           unity-src-file-extension "$")
+   (concat unity-hardware-file-suffix
+           unity-src-file-extension)
+   (unity-header-to-src-file-name file-name)))
 
 (defun unity-buffer-is-test-p ()
   "Returns true if the current buffer is a test file"
@@ -487,7 +530,6 @@ Return a new string containing the rakefile contents with ceedling-rakefile-targ
       (if (not test-time) (rename-file old-rakefile temp))
       temp)))
 
-
 (defun unity-generate-backup-name (name &optional test-time)
   (if (unity-is-ruby-file-p name)
       (replace-regexp-in-string
@@ -495,34 +537,102 @@ Return a new string containing the rakefile contents with ceedling-rakefile-targ
                 (replace-regexp-in-string ".rb" "" name) "_"
                 (current-time-string test-time) ".rb"))))
 
-(defun unity-switch-src-header-buffer (file-name)
-  (if (unity-test-file-exists-p (unity-src-to-header-file-name (buffer-file-name)
-  ))))
+(defun unity-file-exists-p (file-name file-type toggle-type)
+  "Determines whether the argument FILE-NAME is present in the
+unity directories.
 
-(defun unity-test-file-exists-p (test-file-name)
-  "Returns t if passed a valid path to a C source file"
-  (string-match
-   (concat "^" (expand-file-name
-                (regexp-quote
-                 (concat
-                  unity-project-root-dir test-file-name "/src"))))
-   test-file-name))
+Second argument FILE-TYPE is a string containing file type such as \"str-type\.
 
-(defun unity-target-src-file-p (file-name)
-  "Returns"
-  (string-match
-   (concat "^" (expand-file-name
-                (regexp-quote
-                 (concat
-                  (unity-search-for-project-root-by-rakefile file-name) "/src"))))
-   file-name))
-
-(defun unity-file-exists-p (file-name file-type)
+Third argument TOGGLE-TYPE is a string containing toggle type such as \"mch-type\"."
   (file-exists-p
    (concat
     (unity-select-path
-     file-type)
+     file-name
+     file-type
+     toggle-type)
     file-name)))
+ 
+(defun unity-dest-file-type (switch-type)
+  (concat (replace-regexp-in-string "^.*-" "" switch-type) "-type"))
+
+(defun unity-select-path (file-name file-type toggle-type)
+  (cond ((equal toggle-type "non-mch-type")
+         (cond ((equal file-type "src-type")
+                unity-src-dir)
+               ((equal file-type "test-type")
+                unity-test-dir)
+               ((equal file-type "header-type")
+                unity-header-dir)
+               (t (error (concat
+                          "ERROR! Unknown file-type ("
+                          file-type
+                          ") in unity-select-path")))))
+        ((equal toggle-type "mch-type")
+         (cond ((unity-is-test-file-p file-name)
+                unity-test-dir)
+               (t unity-src-dir)))
+        ((t (error (concat
+                    "ERROR! Unknown toggle-type ("
+                    toggle-type
+                    ") in unity-select-path"))))))
+        
+(defun unity-switch-buffer (file-name switch-type toggle-type &optional test)
+  (let ((temp-name
+         (unity-convert-file-name 
+          file-name
+          switch-type
+          toggle-type)))
+    (if (unity-file-exists-p
+         temp-name
+         (unity-dest-file-type switch-type) toggle-type)
+        (if (not test)
+            (find-file
+             (concat
+              (unity-select-path
+               file-name
+               (unity-dest-file-type switch-type)
+               toggle-type)
+              temp-name))
+          temp-name))))
+
+(defun unity-select-replacement-suffix (switch-type)
+  (cond ((equal switch-type "conductor-to-model")
+         unity-model-file-suffix)
+        ((equal switch-type "hardware-to-model")
+         unity-model-file-suffix)
+        ((equal switch-type "model-to-conductor")
+         unity-conductor-file-suffix)
+        ((equal switch-type "hardware-to-conductor")
+         unity-conductor-file-suffix)
+        ((equal switch-type "conductor-to-hardware")
+         unity-hardware-file-suffix)
+        ((equal switch-type "model-to-hardware")
+         unity-hardware-file-suffix)
+        (t (error
+            (concat
+             "ERROR! Invalid switch-type ("
+             switch-type
+             ") in  unity-select-replacement-suffix")))))
+
+(defun unity-select-replaced-suffix (switch-type)
+  (cond ((equal switch-type "model-to-conductor")
+         unity-model-file-suffix)
+        ((equal switch-type "model-to-hardware")
+         unity-model-file-suffix)
+        ((equal switch-type "conductor-to-hardware")
+         "Conductor")
+;;         unity-conductor-file-suffix)
+        ((equal switch-type "conductor-to-model")
+         unity-conductor-file-suffix)
+        ((equal switch-type "hardware-to-conductor")
+         unity-hardware-file-suffix)
+        ((equal switch-type "hardware-to-model")
+         unity-hardware-file-suffix)
+        (t (error
+            (concat
+             "ERROR! Invalid switch-type ("
+             switch-type
+             ") in  unity-select-replaced-suffix")))))
 
 (defun unity-switch-file-name (file-name switch-type)
   (cond ((string= switch-type "test-to-src")
@@ -539,52 +649,68 @@ Return a new string containing the rakefile contents with ceedling-rakefile-targ
           (unity-header-to-src-file-name file-name)))
         ((string= switch-type "header-to-src")
          (unity-header-to-src-file-name file-name))
-        (t (error "ERROR! Invalid switch-type in unity-switch-file-name!"))))
+        (t (error
+            (concat
+             "ERROR! Invalid switch-type ("
+             switch-type
+             ") in unity-switch-file-name!")))))
 
-(defun unity-dest-file-type (switch-type)
-   (concat (replace-regexp-in-string "^.*-" "" switch-type) "-type"))
+(defun unity-convert-MCH-file-name (file-name switch-type)
+  (replace-regexp-in-string
+   (concat (unity-select-replaced-suffix switch-type) "\\"
+           unity-src-file-extension "$")
+   (concat (unity-select-replacement-suffix switch-type)
+           unity-src-file-extension)
+   (unity-header-to-src-file-name file-name)))
 
-(defun unity-select-path (file-type)
-  (cond ((equal file-type "src-type")
-         unity-src-dir)
-        ((equal file-type "test-type")
-         unity-test-dir)
-        ((equal file-type "header-type")
-         unity-header-dir)
-        (t (error "ERROR! Invalid file-type in unity-select-path"))))
 
-(defun unity-switch-buffer (file-name switch-type &optional test)
-  (let ((temp-name
-         (unity-switch-file-name
-          file-name
-          switch-type)))
-    (if (unity-file-exists-p
-         temp-name
-         (unity-dest-file-type switch-type))
-        (if (not test)
-            (find-file
-             (concat
-              (unity-select-path (unity-dest-file-type switch-type))
-              temp-name))
-          temp-name))))
-  
+(defun unity-convert-file-name (file-name switch-type toggle-type)
+  (cond ((equal toggle-type "mch-type")
+         (unity-convert-MCH-file-name file-name switch-type))
+        ((equal toggle-type "non-mch-type")
+         (unity-switch-file-name file-name switch-type))
+        (t (error "ERROR! Invalid toggle-type (" toggle-type ") in unity-convert-file-name"))))
+                                    
 (defun unity-toggle-test-src-header-buffer ()
   "Toggle between test source file "
   (interactive)
   (let ((file-name (file-name-nondirectory buffer-file-name)))
     (cond ((unity-is-test-file-p file-name)
-           (if (not (unity-switch-buffer file-name "test-to-src"))
-               (if (not (unity-switch-buffer file-name "test-to-header"))
+           (if (not (unity-switch-buffer file-name "test-to-src" "non-mch-type"))
+               (if (not (unity-switch-buffer file-name "test-to-header" "non-mch-type"))
                    (error "No matching source or header file!"))))
           
           ((unity-is-src-file-p file-name)
-           (if (not (unity-switch-buffer file-name "src-to-header"))
-               (if (not (unity-switch-buffer file-name "src-to-test"))
+           (if (not (unity-switch-buffer file-name "src-to-header" "non-mch-type"))
+               (if (not (unity-switch-buffer file-name "src-to-test" "non-mch-type"))
                    (error "No matching test or header file!"))))
           
           ((unity-is-header-file-p file-name)
-           (if (not (unity-switch-buffer file-name "header-to-test"))
-               (if (not (unity-switch-buffer file-name "header-to-src"))
+           (if (not (unity-switch-buffer file-name "header-to-test" "non-mch-type"))
+               (if (not (unity-switch-buffer file-name "header-to-src" "non-mch-type"))
                    (error "No matching src or test file!"))))
-          ( t (error "File is neither test source or header file!")))))
+          ( t (error "File invalid!")))))
 
+(defun unity-toggle-MCH-buffer ()
+  "Toggle between model conductor and hardware buffers "
+  (interactive)
+  (let ((file-name (file-name-nondirectory buffer-file-name)))
+    (cond ((unity-is-model-file-p file-name)
+           (if (not (unity-switch-buffer file-name "model-to-conductor" "mch-type"))
+               (if (not (unity-switch-buffer file-name  "model-to-hardware" "mch-type"))
+                   (error "No matching conductor or hardware file!"))))
+          
+          ((unity-is-conductor-file-p file-name)
+           (if (not (unity-switch-buffer file-name "conductor-to-hardware" "mch-type"))
+               (if (not (unity-switch-buffer file-name "conductor-to-model" "mch-type"))
+                   (error "No matching hardware or model file!"))))
+          
+          ((unity-is-hardware-file-p file-name)
+           (if (not (unity-switch-buffer file-name "hardware-to-model" "mch-type"))
+               (if (not (unity-switch-buffer file-name "hardware-to-conductor" "mch-type"))
+                   (error "No matching model or conductor file!"))))
+          ((unity-is-header-file-p file-name)
+           (if (not (unity-switch-buffer file-name "header-to-src" "non-mch-type"))
+               (if (not (unity-switch-buffer file-name "header-to-test" "non-mch-type"))
+                   (error "No matching file!"))))
+          ( t (error "File invalid!")))))
