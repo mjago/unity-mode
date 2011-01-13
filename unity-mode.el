@@ -459,24 +459,9 @@ return original file-name"
           (string-match "\\(.*\\)[^\n]" event)
           (message unity-test-fail-message-with-reason (match-string 1 event)))))))
 
-;; TODO what is the sensible way to do this?..
 (defun unity-colour (msg colour)
-  (progn
-    (let ((msg msg))
-      (put-text-property
-       0 (length msg) 'face
-       (or (if (equal colour "green")
-               '(foreground-color . "green"))
-           (if (equal colour "dark green")
-               '(foreground-color . "dark green"))
-           (if (equal colour "red")
-               '(foreground-color . "red"))
-           (if (equal colour "yellow")
-               '(foreground-color . "yellow"))
-           (if (equal colour "light blue")
-               '(foreground-color . "light blue")))
-       msg)
-      msg)))
+  (put-text-property
+   0 (length msg) 'face `(foreground-color .,colour) msg) msg)
 
 (provide 'unity-mode)
 

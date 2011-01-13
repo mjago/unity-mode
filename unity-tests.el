@@ -552,3 +552,9 @@ task :default => [:clobber, 'test:all']\n\n"
 (ert-deftest unity-is-model-file-p-test ()
   (should (unity-is-model-file-p "AdcModel.c")))
 
+(ert-deftest unity-is-conductor-file-p-test ()
+  (should (unity-is-conductor-file-p "AdcConductor.c")))
+
+(ert-deftest unity-is-hardware-file-p-test ()
+  (should (unity-is-hardware-file-p "AdcHardware.c")))
+
