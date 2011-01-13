@@ -66,7 +66,6 @@
   "The command for rake"
   :type 'string
   :group 'unity-mode)
-
 (defcustom unity-project-root-dir "/home/martyn/ceedling5/trunk/examples/temp_sensor/" "Project Root Directory"
   :type 'string
   :group 'unity-mode)
@@ -683,8 +682,6 @@ last-run as ruby test (or spec)."
 (defun unity-rakefile-set-target (rakefile target)
   "Takes template project rakefile and sets correct ceedling rakefile target which will typically be \"ceedling-root-dir/lib/rakefile.rb\".
 
-(unity-rakefile-set-target RAKEFILE TARGET)
-
 Return a new string containing the rakefile contents with ceedling-rakefile-target.rb replaced with TARGET."
 
   (replace-regexp-in-string
@@ -790,11 +787,10 @@ Return a new string containing the rakefile contents with ceedling-rakefile-targ
          (unity-create-src-file-name file-name)))
     (if (unity-file-exists-p temp-name "src-type")
         (if (not test)
-            (progn (find-file
-                    (concat
-                     unity-src-dir
-                     temp-name))
-                    t)
+            (find-file
+             (concat
+              unity-src-dir
+              temp-name))
           temp-name))))
 
 (defun unity-switch-test-header-buffer (file-name &optional test)

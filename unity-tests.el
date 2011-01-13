@@ -242,13 +242,13 @@ load File.join(File.dirname(__FILE__),'~/.emacs.d/martyn/martyn/unity-mode/ceedl
 task :default => [:clobber, 'test:all']\n\n"
                  (unity-rakefile-set-target
                  unity-rakefile
-                 "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/lib/rakefile.rb"))))
+                 "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/lib/rakefile.rb")))
   (should (equal "\n\nPROJECT_ROOT  = File.expand_path( File.dirname(__FILE__) )\n
 load File.join(File.dirname(__FILE__),'../../lib/rakefile.rb')\n
 task :default => [:clobber, 'test:all']\n\n"
                  (unity-rakefile-set-target
                  unity-rakefile
-                 "../../lib/rakefile.rb")))
+                 "../../lib/rakefile.rb"))))
 
 ;; (ert-deftest unity-rakefile-backup-test ()
 ;;   (should (equal "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/rakefile_Thu_Jan__6_17:46:50_2011.rb"
@@ -370,45 +370,43 @@ task :default => [:clobber, 'test:all']\n\n"
   )
    
 (ert-deftest unity-switch-test-src-buffer-creates-correct-filename ()
-  (should
-   (equal
+  (should (equal
      "AdcConductor.c"
     (unity-switch-test-src-buffer
      "TestAdcConductor.c" t))))
 
 (ert-deftest unity-switch-src-header-buffer-creates-correct-filename ()
-  (should
-   (equal
+  (should (equal
      "AdcConductor.h"
     (unity-switch-src-header-buffer "AdcConductor.c" t))))
 
 (ert-deftest unity-switch-test-header-buffer-creates-correct-filename ()
-  (should
-   (equal
+  (should (equal
      "AdcConductor.h"
     (unity-switch-test-header-buffer
      "AdcConductor.c" t))))
 
 (ert-deftest unity-switch-src-test-buffer-creates-correct-filename ()
-  (should
-   (equal
+  (should (equal
      "TestAdcConductor.c"
     (unity-switch-src-test-buffer
      "AdcConductor.c" t))))
 
 (ert-deftest unity-switch-header-test-buffer-creates-correct-filename ()
-  (should
-   (equal
+  (should (equal
      "TestAdcConductor.c"
     (unity-switch-header-test-buffer
      "AdcConductor.h" t))))
 
 (ert-deftest unity-switch-header-src-buffer-creates-correct-filename ()
-  (should
-   (equal
+  (should (equal
      "AdcConductor.c"
     (unity-switch-header-src-buffer
-     "AdcConductor.h" t))))
+     "AdcConductor.h" t)))
+  (should (equal
+    "AdcHardwareConfigurator.c"
+    (unity-switch-header-src-buffer
+     "AdcHardwareConfigurator.h" t))))
 
 (ert-deftest unity-create-src-file-name-test ()
   (should (equal "AdcConductor.c"
