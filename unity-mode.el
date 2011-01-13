@@ -14,8 +14,7 @@
 (define-key unity-mode-keymap (kbd "C-; a") 'unity-test-all)
 (define-key unity-mode-keymap (kbd "C-; d") 'unity-test-delta)
 (define-key unity-mode-keymap (kbd "C-; i") 'unity-toggle-test-ignored)
-(define-key unity-mode-keymap (kbd "C-; t") 'unity-toggle-test-and-target)
-(define-key unity-mode-keymap (kbd "C-; C-h") 'unity-toggle-src-and-header)
+(define-key unity-mode-keymap (kbd "C-; t") 'unity-toggle-test-src-header-buffer)
 (define-key unity-mode-keymap (kbd "C-; m") 'unity-toggle-triad)
 (define-key unity-mode-keymap (kbd "C-; n") 'unity-new-menus)
 
@@ -173,7 +172,7 @@ Unit testing integration"
     "$")
    (file-name-nondirectory file-name)))
 
-(defun unity-is-a-ruby-file-p (file-name)
+(defun unity-is-ruby-file-p (file-name)
   "Returns true if the file is a ruby file"
   (interactive)
   (string-match
@@ -183,7 +182,7 @@ Unit testing integration"
     "$")
    (file-name-nondirectory file-name)))
 
-(defun unity-is-a-code-file-p (file-name)
+(defun unity-is-code-file-p (file-name)
   "Returns t if file-name corresponds to a testfile, src file or header file"
   (or (unity-is-src-file-p file-name)
       (unity-is-header-file-p file-name)
@@ -252,89 +251,6 @@ Unit testing integration"
 (defun unity-source-directory-has-src? (file-name)
   (file-directory-p (concat (unity-source-directory file-name) "/src")))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-;; (defun unity-find-src-for-test-file (test-file-name &optional base-directory)
-;;   "Find the target for test-file-name"
-;;   (first
-;;    (file-expand-wildcards
-;;     (replace-regexp-in-string
-;;          "/test/"
-;;          (if (unity-test-file-exists-p test-file-name) "/" "/*/")
-;;          (unity-create-src-file-name test-file-name)))))
-
-(defun unity-find-src-for-test-file (test-file-name &optional base-directory)
-  "Find the target for test-file-name"
-  (concat
-   (if base-directory base-directory "/")))
-
-
-
-
-
-;;   (replace-regexp-in-string
-;; "test"
-;; "src"))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-(defun unity-find-test-for-src-file (file-name)
-  "Find test for the testified file"
-  (if (unity-is-test-file-p file-name)
-      file-name
-    (let ((replace-regex
-           (if
-               (and
-                (unity-target-src-file-p file-name)
-                (unity-search-for-test-directory-has-src-p file-name))
-               "^\\.\\./"
-             "^\\.\\./[^/]+/"))
-          (relative-file-name
-           (file-relative-name file-name
-                               (unity-search-for-test-directory file-name))))
-      (unity-testize-file-name
-       (expand-file-name
-        (replace-regexp-in-string replace-regex "" relative-file-name)
-        (unity-search-for-test-directory file-name))))))
-
-
 (defun unity-beginning-of-test()
   "Moves point to the beginning of the test in which the point currently is."
   (interactive)
@@ -382,10 +298,10 @@ Unit testing integration"
       (delete-region (save-excursion (beginning-of-line) (point)) 
                      (save-excursion (forward-line 1) (point))))))
 
-(defun unity-verify ()
-  "Runs the specified test, or the test file for the current buffer."
-  (interactive)
-  (unity-run-single-file (unity-find-test-for-src-file (buffer-file-name)) (unity-core-options ())))
+;; (defun unity-verify ()
+;;   "Runs the specified test, or the test file for the current buffer."
+;;   (interactive)
+;;   (unity-run-single-file (unity-find-test-for-src-file (buffer-file-name)) (unity-core-options ())))
 
 (defun unity-search-for-test-directory (file-or-directory)
   "Returns the nearest test directory that could contain tests for file-or-directory. The function is passed either a file or directory, and is recursive."
@@ -397,83 +313,12 @@ Unit testing integration"
          (unity-search-for-test-directory (unity-parent-directory file-or-directory))))
     (unity-search-for-test-directory (unity-parent-directory file-or-directory))))
 
-
 (defun unity-search-for-project-root-by-rakefile (&optional directory)
   "Attempts to find the root directory of the project by walking up the directory tree until it finds a rake file"
   (let ((directory (file-name-as-directory (or directory default-directory))))
     (cond ((unity-root-directory-p directory) nil)
           ((file-exists-p (concat directory "rakefile.rb")) directory)
           (t (unity-search-for-project-root-by-rakefile (file-name-directory (directory-file-name directory)))))))
-
-(defun unity-search-for-ceedling-root-by-project-yml (&optional directory)
-  "Attempts to find the ceedling root directory of the project by walking up the directory tree until it finds a project.yml file"
-  (let ((directory (file-name-as-directory (or directory default-directory))))
-    (cond ((unity-root-directory-p directory) nil)
-          ((file-exists-p (concat directory "project.yml")) directory)
-          (t (unity-search-for-project-root-by-rakefile (file-name-directory (directory-file-name directory)))))))
-
-;; (defun test-unity-is-header-file-p-detects-header ()
-;;   (interactive)
-;;   (if (unity-is-header-file-p "header.h")
-;;       (message "File detected as header")
-;;     (message "ERROR! Header not detected as file")))
-
-;; (defun test-unity-is-header-file-p-detects-non-header ()
-;;   (interactive)
-;;   (if (unity-is-header-file-p "non_header.c")
-;;       (message "ERROR!File detected as header")
-;;     (message" Header not detected as expected")))
-
-;; (defun test-unity-buffer-is-header-p ()
-;;   (interactive)
-;;   (if (unity-buffer-is-header-p)
-;;       (message "Current buffer is header file")
-;;     (message "Current buffer is NOT header file")))
-
-;; (defun unity-toggle-test-and-target ()
-;;   "Toggle test and target buffers"
-;;   (interactive)
-;;   (if (unity-buffer-is-test-p)
-;;       (if (unity-test-file-exists-p
-;;            (unity-find-src-for-test-file (buffer-file-name)))
-;;           (find-file (unity-find-src-for-test-file (buffer-file-name)))
-;;         (message "isn't test file"))
-;;     (if (unity-is-test-file-p
-;;          (unity-find-test-for-src-file (buffer-file-name)))
-;;         (find-file (unity-find-test-for-src-file (buffer-file-name)))
-;;       (if (unity-buffer-is-header-p)
-;;           (if (unity-is-test-file-p
-;;                (unity-find-test-for-src-file
-;;                 (unity-header-to-src-file-name
-;;                  (buffer-file-name))))
-;;               (find-file
-;;                (unity-find-test-for-src-file
-;;                 (unity-header-to-src-file-name
-;;                  (buffer-file-name)))))
-;;         (error "Couldn't find matching file")))))
-
-(defun unity-toggle-test-and-target ()
-  "Toggle test and target buffers"
-  (interactive)
-  (if (unity-buffer-is-test-p)
-      (if (unity-test-file-exists-p
-           (unity-find-src-for-test-file (buffer-file-name)))
-          (find-file (unity-find-src-for-test-file (buffer-file-name)))
-        (message "isn't test file"))
-    (if (unity-is-test-file-p
-         (unity-find-test-for-src-file (buffer-file-name)))
-        (find-file (unity-find-test-for-src-file (buffer-file-name)))
-      (if (unity-buffer-is-header-p)
-          (if (unity-is-test-file-p
-               (unity-find-test-for-src-file
-                (unity-header-to-src-file-name
-                 (buffer-file-name))))
-              (find-file
-               (unity-find-test-for-src-file
-                (unity-header-to-src-file-name
-                 (buffer-file-name)))))
-        (error "Couldn't find matching file")))))
-
 
 (defun unity-test-all ()
   (interactive)
@@ -530,8 +375,6 @@ Unit testing integration"
   )
 
 (defun unity-run-file ()
-  "Run buffer's file as test, first visible window file or
-last-run as ruby test (or spec)."
   (interactive)
   (setq unity-buffer (get-buffer-create unity-temp-buffer))
   ;;  (let ((test-file (find-unity-file)))
@@ -539,51 +382,6 @@ last-run as ruby test (or spec)."
     (if t ;; test-file
         (unity-run-test-file test-file unity-buffer)
       (message unity-not-found-message))))
-
-(defun unity-run-test-file (file output-buffer &optional line-number)
-  (let (command category (options (list file)))
-    ;; (cond
-    ;;  ((ruby-spec-p file) 
-    ;;   (setq command (or (ruby-test-spec-executable test-file) spec))
-    ;;   (setq category "spec")
-    ;;   (if line-number
-    ;;       (setq options (cons "--line" (cons (format "%d" line-number) options)))))
-    ;;  ((ruby-test-p file)
-    ;;   (setq command (or (ruby-test-ruby-executable) "ruby"))
-    ;;   (setq category "unit test")
-    ;;   (if line-number
-    ;;       (let ((test-case (ruby-test-find-testcase-at file line-number)))
-    ;;         (if test-case
-    ;;     	(setq options (cons file (list (format "--name=%s" test-case))))
-    ;;           (error "No test case at %s:%s" file line-number)))))
-    ;;   (t (message "File is not a known ruby test file")))
-
-    (if (unity-is-test-file-p file) 
-        ;;       (setq command (or (ruby-test-spec-executable test-file) spec))
-        (setq command ";;")
-      ;;       (setq category "spec")
-      ;;       (if line-number
-      ;;           (setq options (cons "--line" (cons (format "%d" line-number) options))
-      (error "File not a test file"))
-    (invoke-test-file  file output-buffer)))
-
-;; (defun invoke-test-file (command-string options category file buffer)
-;;   (message "Running %s '%s'..." category file)
-;;   (display-buffer buffer)
-;;   (setq ruby-test-last-run file)
-;;   (save-excursion
-;;     (set-buffer buffer)
-;;     (setq buffer-read-only t)
-;;     (let ((buffer-read-only nil))
-;;       (erase-buffer)
-;;       (set-auto-mode-0 'ruby-test-mode nil)
-;;       (let ((args (append (list command-string) options)))
-;;         (let ((directory (ruby-root file))
-;; 	      (previous-directory default-directory))
-;;           (and directory (cd directory))
-;; 	  (let ((proc (apply 'start-process "ruby-test" buffer args)))
-;; 	    (set-process-sentinel proc 'ruby-test-runner-sentinel))
-;; 	  (and directory (cd previous-directory)))))))
 
 (defun invoke-test-file (file buffer)
   (message "Running %s " file)
@@ -640,7 +438,7 @@ last-run as ruby test (or spec)."
 (provide 'unity-mode)
 
 (defun unity-find-root-dir (&optional reference-file)
-  (if (unity-is-a-code-file-p reference-file)
+  (if (unity-is-code-file-p reference-file)
       (unity-search-for-project-root-by-rakefile
        (file-name-directory reference-file))))
 
@@ -659,13 +457,6 @@ last-run as ruby test (or spec)."
           ((unity-check-for-ceedling-directories-p directory) directory)
           (t (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
               (file-name-directory (directory-file-name directory)))))))
-
-;; (defun unity-search-for-project-root-by-rakefile (&optional directory)
-;;   "Attempts to find the root directory of the project by walking up the directory tree until it finds a rake file"
-;;   (let ((directory (file-name-as-directory (or directory default-directory))))
-;;     (cond ((unity-root-directory-p directory) nil)
-;;           ((file-exists-p (concat directory "rakefile.rb")) directory)
-;;           (t (unity-search-for-project-root-by-rakefile (file-name-directory (direc
 
 (defun unity-check-for-unity-root-relative-to-ceedling-p (directory)
   (file-directory-p (concat directory "vendor/unity/")))
@@ -698,7 +489,7 @@ Return a new string containing the rakefile contents with ceedling-rakefile-targ
 
 
 (defun unity-generate-backup-name (name &optional test-time)
-  (if (unity-is-a-ruby-file-p name)
+  (if (unity-is-ruby-file-p name)
       (replace-regexp-in-string
        " " "_" (concat
                 (replace-regexp-in-string ".rb" "" name) "_"
@@ -707,28 +498,6 @@ Return a new string containing the rakefile contents with ceedling-rakefile-targ
 (defun unity-switch-src-header-buffer (file-name)
   (if (unity-test-file-exists-p (unity-src-to-header-file-name (buffer-file-name)
   ))))
-
-
-(defun unity-toggle-src-and-header ()
-  "Toggle between source file and header file"
-  (interactive)
-  (if (unity-buffer-is-header-p)
-      (if (unity-test-file-exists-p
-           (unity-header-to-src-file-name (buffer-file-name)))
-          (find-file (unity-header-to-src-file-name (buffer-file-name)))
-        (error "Couldn't find matching file"))
-
-    (if (unity-test-file-exists-p (unity-src-to-header-file-name (buffer-file-name)))
-        (find-file (unity-src-to-header-file-name (buffer-file-name)))
-      (if (unity-buffer-is-test-p)
-          (if (unity-test-file-exists-p
-               (unity-src-to-header-file-name
-                (unity-find-src-for-test-file (buffer-file-name))))
-              (find-file (unity-src-to-header-file-name
-                          (unity-find-src-for-test-file (buffer-file-name)))))
-        (error "Couldn't find matching file")))))
-
-
 
 (defun unity-test-file-exists-p (test-file-name)
   "Returns t if passed a valid path to a C source file"
@@ -749,128 +518,73 @@ Return a new string containing the rakefile contents with ceedling-rakefile-targ
    file-name))
 
 (defun unity-file-exists-p (file-name file-type)
-  (let (directory temp)
-    (cond ((equal file-type "src-type")
-           (setq directory unity-src-dir))
-          ((equal file-type "test-type")
-           (setq directory unity-test-dir))
-          ((equal file-type "header-type")
-           (setq directory unity-header-dir))
-          ((t)(error "Unknown File Type in unity-file-exists-p")))
-    (setq temp (file-exists-p
-                 (concat
-                  directory
-                  file-name)))
-    temp))
+  (file-exists-p
+   (concat
+    (unity-select-path
+     file-type)
+    file-name)))
 
-(defun unity-toggle-src-and-header ()
-  "Toggle between source file and header file"
-  (interactive)
-  (if (unity-buffer-is-header-p)
-      (if (unity-test-file-exists-p
-           (unity-header-to-src-file-name (buffer-file-name)))
-          (find-file (unity-header-to-src-file-name (buffer-file-name)))
-        (error "Couldn't find matching file"))
-    (if (unity-test-file-exists-p (unity-src-to-header-file-name (buffer-file-name)))
-        (find-file (unity-src-to-header-file-name (buffer-file-name)))
-      (if (unity-buffer-is-test-p)
-          (if (unity-test-file-exists-p
-               (unity-src-to-header-file-name
-                (unity-find-src-for-test-file (buffer-file-name))))
-              (find-file (unity-src-to-header-file-name
-                          (unity-find-src-for-test-file (buffer-file-name)))))
-        (error "Couldn't find matching file")))))
-
-
-(defun unity-switch-test-src-buffer (file-name &optional test)
-  (let ((temp-name
-         (unity-create-src-file-name file-name)))
-    (if (unity-file-exists-p temp-name "src-type")
-        (if (not test)
-            (find-file
-             (concat
-              unity-src-dir
-              temp-name))
-          temp-name))))
-
-(defun unity-switch-test-header-buffer (file-name &optional test)
-  (let ((temp-name
+(defun unity-switch-file-name (file-name switch-type)
+  (cond ((string= switch-type "test-to-src")
+         (unity-create-src-file-name file-name))
+        ((string= switch-type "src-to-header")
+         (unity-src-to-header-file-name file-name))
+        ((string= switch-type "test-to-header")
          (unity-src-to-header-file-name
-           ;;(unity-create-header-file-name
-           file-name)))
-    (if (unity-file-exists-p temp-name "header-type")
-        (if (not test)
-            (find-file
-             (concat
-              unity-header-dir
-              temp-name))
-          temp-name))))
+          (unity-create-src-file-name file-name)))
+        ((string= switch-type "src-to-test")
+         (unity-create-test-file-name file-name))
+        ((string= switch-type "header-to-test")
+         (unity-create-test-file-name
+          (unity-header-to-src-file-name file-name)))
+        ((string= switch-type "header-to-src")
+         (unity-header-to-src-file-name file-name))
+        (t (error "ERROR! Invalid switch-type in unity-switch-file-name!"))))
 
-(defun unity-switch-src-header-buffer (file-name &optional test)
+(defun unity-dest-file-type (switch-type)
+   (concat (replace-regexp-in-string "^.*-" "" switch-type) "-type"))
+
+(defun unity-select-path (file-type)
+  (cond ((equal file-type "src-type")
+         unity-src-dir)
+        ((equal file-type "test-type")
+         unity-test-dir)
+        ((equal file-type "header-type")
+         unity-header-dir)
+        (t (error "ERROR! Invalid file-type in unity-select-path"))))
+
+(defun unity-switch-buffer (file-name switch-type &optional test)
   (let ((temp-name
-         (unity-src-to-header-file-name file-name)))
-    (if (unity-file-exists-p temp-name "header-type")
+         (unity-switch-file-name
+          file-name
+          switch-type)))
+    (if (unity-file-exists-p
+         temp-name
+         (unity-dest-file-type switch-type))
         (if (not test)
             (find-file
              (concat
-              unity-header-dir
+              (unity-select-path (unity-dest-file-type switch-type))
               temp-name))
           temp-name))))
   
-(defun unity-switch-src-test-buffer (file-name &optional test)
-  (let ((temp-name
-         (unity-create-test-file-name file-name)))
-    (if (unity-file-exists-p temp-name "test-type")
-        (if (not test)
-            (find-file
-             (concat
-              unity-test-dir
-              temp-name))
-          temp-name))))
-
-(defun unity-switch-header-test-buffer (file-name &optional test)
-  (let ((temp-name
-         (unity-create-test-file-name
-          (unity-header-to-src-file-name file-name))))
-    (if (unity-file-exists-p
-         temp-name
-         "test-type")
-        (if (not test)
-            (find-file
-             (concat
-              unity-test-dir
-              temp-name))
-          temp-name))))
-
-(defun unity-switch-header-src-buffer (file-name  &optional test)
-  (let ((temp-name
-         (unity-header-to-src-file-name file-name)))
-    (if (unity-file-exists-p
-         temp-name
-         "src-type")
-        (if (not test)
-            (find-file
-             (concat
-              unity-src-dir
-              temp-name))
-          temp-name))))
-
 (defun unity-toggle-test-src-header-buffer ()
   "Toggle between test source file "
   (interactive)
   (let ((file-name (file-name-nondirectory buffer-file-name)))
     (cond ((unity-is-test-file-p file-name)
-           (if (not (unity-switch-test-src-buffer file-name))
-               (if (not (unity-switch-test-header-buffer file-name))
+           (if (not (unity-switch-buffer file-name "test-to-src"))
+               (if (not (unity-switch-buffer file-name "test-to-header"))
                    (error "No matching source or header file!"))))
           
           ((unity-is-src-file-p file-name)
-           (if (not (unity-switch-src-header-buffer file-name))
-               (if (not (unity-switch-src-test-buffer file-name))
+           (if (not (unity-switch-buffer file-name "src-to-header"))
+               (if (not (unity-switch-buffer file-name "src-to-test"))
                    (error "No matching test or header file!"))))
+          
           ((unity-is-header-file-p file-name)
-           (if (not (unity-switch-header-test-buffer file-name))
-               (if (not (unity-switch-header-src-buffer file-name))
+           (if (not (unity-switch-buffer file-name "header-to-test"))
+               (if (not (unity-switch-buffer file-name "header-to-src"))
                    (error "No matching src or test file!"))))
           ( t (error "File is neither test source or header file!")))))
 
