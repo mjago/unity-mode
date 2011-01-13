@@ -98,11 +98,11 @@
 
 (ert-deftest unity-create-source-file-name-returns-correct-file-name ()
   (should (equal "file_name.c"
-                 (unity-create-source-file-name "Testfile_name.c")))
+                 (unity-create-src-file-name "Testfile_name.c")))
   (should (equal "file_name.c"
-                 (unity-create-source-file-name "Testfile_name")))
+                 (unity-create-src-file-name "Testfile_name")))
   (should (equal "~/file_name.c"
-                 (unity-create-source-file-name "~/Testfile_name.c"))))
+                 (unity-create-src-file-name "~/Testfile_name.c"))))
 
 (ert-deftest unity-create-test-file-name-returns-correct-file-name ()
   (should (equal "Testfile_name.c"
@@ -301,63 +301,63 @@ task :default => [:clobber, 'test:all']\n\n"
 ;; ;;   (should (equal ""
 ;; ;;                  (unity-find-src-for-test-file "test_file.c"))))
 
-(ert-deftest unity-generate-directories-test ()
-  (let ((ert-test-dir "~/.emacs.d/martyn/martyn/unity-mode/ert-test/"))
-    (if (file-directory-p ert-test-dir)
-        (delete-directory ert-test-dir))
+;; (ert-deftest unity-generate-directories-test ()
+;;   (let ((ert-test-dir "~/.emacs.d/martyn/martyn/unity-mode/ert-test/"))
+;;     (if (file-directory-p ert-test-dir)
+;;         (delete-directory ert-test-dir))
     
-    (make-directory ert-test-dir)
-    (setq unity-directory-list 
-          `(,(concat ert-test-dir "test-1/")
-            ,(concat ert-test-dir "test-2/")
-            ,(concat ert-test-dir "test-3/")))
+;;     (make-directory ert-test-dir)
+;;     (setq unity-directory-list 
+;;           `(,(concat ert-test-dir "test-1/")
+;;             ,(concat ert-test-dir "test-2/")
+;;             ,(concat ert-test-dir "test-3/")))
 
-    (unity-generate-directories unity-directory-list)
-    (loop for i in unity-directory-list
-          collect(should (file-directory-p i)))
-    (loop for i in unity-directory-list
-          collect(delete-directory i))
+;;     (unity-generate-directories unity-directory-list)
+;;     (loop for i in unity-directory-list
+;;           collect(should (file-directory-p i)))
+;;     (loop for i in unity-directory-list
+;;           collect(delete-directory i))
 
-    (delete-directory ert-test-dir)))
+;;     (delete-directory ert-test-dir)))
 
-(ert-deftest unity-build-missing-directories-list-test ()
-  (let ((ert-test-dir "~/.emacs.d/martyn/martyn/unity-mode/ert-test/"))
-    (if (file-directory-p ert-test-dir)
-        (delete-directory ert-test-dir))
+;; (ert-deftest unity-build-missing-directories-list-test ()
+;;   (let ((ert-test-dir "~/.emacs.d/martyn/martyn/unity-mode/ert-test/"))
+;;     (if (file-directory-p ert-test-dir)
+;;         (delete-directory ert-test-dir))
 
-    (unity-generate-directories
-     `(,(concat ert-test-dir)
-       ,(concat ert-test-dir "test-3/")))
+;;     (unity-generate-directories
+;;      `(,(concat ert-test-dir)
+;;        ,(concat ert-test-dir "test-3/")))
 
-    (should
-     (equal
-      `(,(concat ert-test-dir "test-2/")
-        ,(concat ert-test-dir "test-1/"))
-      (unity-build-missing-directories-list
-       `(,(concat ert-test-dir "test-1/")
-         ,(concat ert-test-dir "test-2/")
-         ,(concat ert-test-dir "test-3/")))))
+;;     (should
+;;      (equal
+;;       `(,(concat ert-test-dir "test-2/")
+;;         ,(concat ert-test-dir "test-1/"))
+;;       (unity-build-missing-directories-list
+;;        `(,(concat ert-test-dir "test-1/")
+;;          ,(concat ert-test-dir "test-2/")
+;;          ,(concat ert-test-dir "test-3/")))))
 
-    (should
-     (equal
-      `(,unity-mocks-dir)
-      (unity-build-missing-directories-list
-       `(,unity-project-root-dir
-         ,unity-ceedling-root-dir
-         ,unity-unity-root-dir
-         ,unity-ceedling-root-dir
-         ,unity-cmock-root-dir
-         ,unity-plugins-dir
-         ,unity-custom-plugins-dir
-         ,unity-src-dir
-         ,unity-header-dir
-         ,unity-test-dir
-         ,unity-mocks-dir
-         ,unity-build-dir))))
+;;     (should
+;;      (equal
+;;       `(,unity-mocks-dir)
+;;       (unity-build-missing-directories-list
+;;        `(,unity-project-root-dir
+;;          ,unity-ceedling-root-dir
+;;          ,unity-unity-root-dir
+;;          ,unity-ceedling-root-dir
+;;          ,unity-cmock-root-dir
+;;          ,unity-plugins-dir
+;;          ,unity-custom-plugins-dir
+;;          ,unity-src-dir
+;;          ,unity-header-dir
+;;          ,unity-test-dir
+;;          ,unity-mocks-dir
+;;          ,unity-build-dir))))
 
-    (loop for i in 
-          `(,(concat ert-test-dir "test-3/"))
-          collect(delete-directory i))))
+;;     (loop for i in 
+;;           `(,(concat ert-test-dir "test-3/"))
+;;           collect(delete-directory i))))
 
 (ert-deftest unity-file-exists-p-test () 
   (should (unity-file-exists-p "TestAdcConductor.c" "test-type"))
@@ -370,15 +370,13 @@ task :default => [:clobber, 'test:all']\n\n"
   )
    
 (ert-deftest unity-switch-test-src-buffer-creates-correct-filename ()
-  (should (equal
-     "AdcConductor.c"
-    (unity-switch-test-src-buffer
-     "TestAdcConductor.c" t))))
+  (should (equal "AdcConductor.c"
+                 (unity-switch-test-src-buffer
+                  "TestAdcConductor.c" t))))
 
 (ert-deftest unity-switch-src-header-buffer-creates-correct-filename ()
-  (should (equal
-     "AdcConductor.h"
-    (unity-switch-src-header-buffer "AdcConductor.c" t))))
+  (should (equal "AdcConductor.h"
+                 (unity-switch-src-header-buffer "AdcConductor.c" t))))
 
 (ert-deftest unity-switch-test-header-buffer-creates-correct-filename ()
   (should (equal

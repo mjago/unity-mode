@@ -1,7 +1,6 @@
 
 * Unity Minor Mode for Emacs (sub-alpha)
 
-
 *** Minor mode for integration with Unity and friends
 
 [[http://throwtheswitch.org/][   Find out how to 'Throw The Switch' with Unity CMock and Ceedling here!]]
@@ -20,6 +19,11 @@
   - DONE Auto Unity-Mode configuration 
     - display, paths, directories, rakefile
   - DONE Finish test/src/header fast-key navigation toggling
+Ideally this should be dedicated to a single key for speed.
+I have it mapped to F5 with the following in my init file...
+
+ - (global-set-key [f5] 'unity-toggle-test-src-header-buffer)
+
   - TODO Finish Auto Unity-Mode configuration file generation
     - project.org, project.yml
   - TODO Finish assertion snippets and internalise for non-ynippets people

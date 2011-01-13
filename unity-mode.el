@@ -66,54 +66,54 @@
   "The command for rake"
   :type 'string
   :group 'unity-mode)
-(defcustom unity-project-root-dir "/home/martyn/ceedling5/trunk/examples/temp_sensor/" "Project Root Directory"
+(defcustom unity-project-root-dir "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/" "Project Root Directory"
   :type 'string
   :group 'unity-mode)
-(defcustom unity-ceedling-root-dir "/home/martyn/ceedling5/trunk/" "Ceedling Root Directory"
+(defcustom unity-ceedling-root-dir "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/" "Ceedling Root Directory"
   :type 'string
   :group 'unity-mode)
-(defcustom unity-unity-root-dir "/home/martyn/ceedling5/trunk/vendor/unity/" "Unity Root Directory"
+(defcustom unity-unity-root-dir "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/vendor/unity/" "Unity Root Directory"
   :type 'string
   :group 'unity-mode)
-(defcustom unity-cmock-root-dir "/home/martyn/ceedling5/trunk/vendor/cmock/" "CMock Root Directory"
+(defcustom unity-cmock-root-dir "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/vendor/cmock/" "CMock Root Directory"
   :type 'string
   :group 'unity-mode)
-(defcustom unity-plugins-dir "/home/martyn/ceedling5/trunk/plugins/" "Plugins Directory"
+(defcustom unity-plugins-dir "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/plugins/" "Plugins Directory"
   :type 'string
   :group 'unity-mode)
-(defcustom unity-custom-plugins-dir "/home/martyn/ceedling5/trunk/custom_plugins/" "Custom Plugins Directory"
+(defcustom unity-custom-plugins-dir "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/custom_plugins/" "Custom Plugins Directory"
   :type 'string
   :group 'unity-mode)
-(defcustom unity-src-dir "/home/martyn/ceedling5/trunk/examples/temp_sensor/src/" "Source Directory"
+(defcustom unity-src-dir "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/" "Source Directory"
   :type 'string
   :group 'unity-mode)
-(defcustom unity-test-dir "/home/martyn/ceedling5/trunk/examples/temp_sensor/test/" "Test Files Directory"
+(defcustom unity-test-dir "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/test/" "Test Files Directory"
   :type 'string
   :group 'unity-mode)
-(defcustom unity-header-dir "/home/martyn/ceedling5/trunk/examples/temp_sensor/inc/" "Header Files Directory"
+(defcustom unity-header-dir "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/" "Header Files Directory"
   :type 'string
   :group 'unity-mode)
-(defcustom unity-mocks-dir "/home/martyn/ceedling5/trunk/examples/temp_sensor/mocks" "Mock Files Directory"
+(defcustom unity-mocks-dir "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/mocks" "Mock Files Directory"
   :type 'string
   :group 'unity-mode)
-(defcustom unity-build-dir "/home/martyn/ceedling5/examples/temp_sensor/build/" "Build Files Directory"
+(defcustom unity-build-dir "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/build/" "Build Files Directory"
   :type 'string
   :group 'unity-mode)
-(defcustom unity-test-file-prefix "test_" "Test File Prefix"
+(defcustom unity-test-file-prefix "Test" "Test File Prefix"
   :type 'string
   :group 'unity-mode)
 (defcustom unity-mock-file-prefix "mock_" "Mock File Prefix"
   :type 'string
   :group 'unity-mode)
-(defcustom unity-model-file-suffix "_model"
+(defcustom unity-model-file-suffix "Model"
   "Model File Suffix (as in some[_model].c)"
   :type 'string
   :group 'unity-mode)
-(defcustom unity-conductor-file-suffix "_condx"
+(defcustom unity-conductor-file-suffix "Conductor"
   (concat "Conductor File Suffix (as in some[unity-conductor-file-suffix].c)")
   :type 'string
   :group 'unity-mode)
-(defcustom unity-hardware-file-suffix "_hware"
+(defcustom unity-hardware-file-suffix "Hardware"
   (concat "Hardware File Suffix (as in some[unity-hardware-file-suffix].c)")
   :type 'string
   :group 'unity-mode)
@@ -208,7 +208,7 @@ Unit testing integration"
   (concat (file-name-directory file-name)
           (unity-c-file-extension-if-necessary 
            (replace-regexp-in-string
-            unity-test-file-prefix
+            (concat "^" unity-test-file-prefix)
             ""
             (file-name-nondirectory file-name)))))
 
@@ -224,15 +224,15 @@ Unit testing integration"
 (defun unity-header-to-src-file-name (file-name)
   "Find the source file for a header file"
   (replace-regexp-in-string
-   unity-header-file-extension
+   (concat unity-header-file-extension "$")
    unity-src-file-extension
    file-name))
 
 (defun unity-src-to-header-file-name (file-name)
   "Find the header file for a source file"
   (replace-regexp-in-string
-    (concat unity-src-file-extension "$")
-    unity-header-file-extension
+   (concat unity-src-file-extension "$")
+   unity-header-file-extension
    file-name))
 
 (defun unity-buffer-is-test-p ()
