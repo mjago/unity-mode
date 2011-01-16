@@ -65,7 +65,7 @@
       (buffer-substring start (point))))))
 
 (defun unity-remove-stars (heading)
-  (message "%s" (replace-regexp-in-string "^\**" "" heading)))
+  (message "%s" (unity-replace-regex-in-string "^\**" "" heading)))
 
 (defun unity-insert-return ()
   (insert "\n"))
@@ -198,7 +198,7 @@
     (message "ERROR! formatted incorrectly!")))
 
 (defun unity-strip-whitespace (str)
-  (replace-regexp-in-string "^[ \t]*" "" (replace-regexp-in-string "[ \t]*$" "" str)))
+  (unity-replace-regex-in-string "^[ \t]*" "" (unity-replace-regex-in-string "[ \t]*$" "" str)))
 
 (defun test-unity-strip-whitespace ()
   (interactive)
@@ -207,7 +207,7 @@
     (message "ERROR! stripped space incorrectly!")))
 
 (defun unity-replace-space-underscore (str)
-  (replace-regexp-in-string "[ ]+" "_" str))
+  (unity-replace-regex-in-string "[ ]+" "_" str))
 
 (defun test-unity-replace-space-underscore ()
   (interactive)

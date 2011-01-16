@@ -3,7 +3,7 @@
 (defun unity-chomp (str)
   "Chomp leading and tailing whitespace from STR."
   (let ((s (if (symbolp str) (symbol-name str) str)))
-    (replace-regexp-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" s)))
+    (unity-replace-regex-in-string "\\(^[[:space:]\n]*\\|[[:space:]\n]*$\\)" "" s)))
 
 (defun unity-insert-heading(text)
   (insert "\n" (unity-colour text  "light blue") "\n"))
