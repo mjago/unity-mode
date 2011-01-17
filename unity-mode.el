@@ -13,9 +13,9 @@
 (define-key unity-mode-keymap
   (kbd "C-; C-i") 'unity-toggle-test-ignored)
 (define-key unity-mode-keymap
-  (kbd "C-; C-t") 'unity-toggle-test-src-header-buffer)
+  (kbd "C-; C-t") 'unity-cycle-test-src-header-buffer)
 (define-key unity-mode-keymap
-  (kbd "C-; C-m") 'unity-toggle-MCH-buffer)
+  (kbd "C-; C-m") 'unity-cycle-MCH-buffer)
 
 (define-key unity-mode-keymap
   (kbd "C-; r") 'unity-test)
@@ -181,6 +181,13 @@ Unit testing integration"
 
 ;;; defuns...
 
+(defun dbg(msg)
+  (if (not msg)
+      (setq msg "nil"))
+  (if (equal msg t)
+      (setq msg "t"))
+  (error (concat "dbg: " msg))) 
+
 (defun unity-replace-regex-in-string (regex replaced string)
   (let ((case-fold-search nil)
         (case-replace nil))
@@ -275,7 +282,7 @@ Unit testing integration"
          (unity-strip-affix-core file-name affix-type))
         ((equal affix-type "suffix-type")
          (operate-sub-extension 'unity-strip-affix-core
-                                        file-name "suffix-type"))
+                                file-name "suffix-type"))
         ( t (unity-error-with-param
              "Invalid affix-type"
              affix-type
@@ -323,18 +330,6 @@ Unit testing integration"
           t
         nil))))
 
-(defun unity-check-prefix-p (file-name file-type)
-  (let ((case-fold-search nil)
-        (case-replace nil))
-    (string-match
-     (concat
-      "^"
-      (unity-file-prefix file-type)
-      (unity-read-name file-name)
-      (unity-read-extension file-name))
-     (file-name-nondirectory file-name))
-     ))
-
 (defun unity-check-suffix-p (file-name file-type)
   (let ((case-fold-search nil)
         (case-replace nil))
@@ -360,28 +355,28 @@ Unit testing integration"
               "Invalid file-type"
               file-type
               "in unity-check-extension-p")))))
-    
-        
+
+
 
 (defun unity-is-file-type-p (file-name file-type)
   "Returns true if the file name matches the file type"
-
   (and (unity-check-prefix-p file-name file-type)
        (unity-check-suffix-p file-name file-type)
        (unity-check-extension-p file-name file-type)))
-       
-      
-      ;; (unity-string-exact-match
-      ;;  (concat
-      ;;   "^"
-      ;;   (unity-file-prefix file-type)
-      ;;   (error (unity-read-name file-name file-type))
-      ;;   (unity-file-suffix file-type)
-      ;;   "\\"
-      ;;   (unity-file-extension file-type)
+
+
+;; (unity-string-exact-match
+;;  (concat
+;;   "^"
+;;   (unity-file-prefix file-type)
+;;   (error (unity-read-name file-name file-type))
+;;   (unity-file-suffix file-type)
+;;   "\\"
+
+;;   (unity-file-extension file-type)
 ;;   "$")
 
-      ;;  (file-name-nondirectory file-name))))
+;;  (file-name-nondirectory file-name))))
 
 (defun unity-is-test-file-p (file-name)
   "Returns true if the file is a test file"
@@ -394,11 +389,26 @@ Unit testing integration"
 
 (defun unity-is-src-file-p (file-name)
   "Returns t if filename has a C extension and is not a testfile"
-  (unity-is-file-type-p file-name "src-file"))
+;  (dbg (unity-check-prefix-p file-name "src-file"));
+;  (dbg  (unity-check-extension-p file-name "src-file"))
+  (and (unity-check-prefix-p file-name "src-file")
+       (unity-check-extension-p file-name "src-file")))
+;TODO  (unity-is-file-type-p file-name "src-file"))
 
 (defun unity-is-header-file-p (file-name)
   "Returns true if the file is a header file"
   (unity-is-file-type-p file-name "header-file"))
+
+(defun unity-check-prefix-p (file-name file-type)
+  (let ((prefix
+         (unity-file-prefix file-type)))
+    
+    (unity-string-exact-match
+     (concat
+      "^"
+      prefix
+      ".*\\.*")
+     (file-name-nondirectory file-name))))
 
 (defun unity-has-file-suffix-p (file-name file-type)
   (let ((suffix
@@ -829,7 +839,9 @@ such as \"mch-type\"."
     file-name)))
 
 (defun unity-dest-file-type (switch-type)
-  (concat (unity-replace-regex-in-string "^.*-" "" switch-type) "-type"))
+  (concat
+   (unity-replace-regex-in-string "^.*-" "" switch-type)
+   "-type"))
 
 (defun unity-select-path (file-name file-type toggle-type)
   (cond ((equal toggle-type "non-mch-type")
@@ -853,11 +865,13 @@ such as \"mch-type\"."
             "in unity-select-path"))))
 
 (defun unity-switch-buffer (file-name switch-type toggle-type &optional test)
-  (let ((temp-name
+  (let (
+        (temp-name
          (unity-convert-file-name 
           file-name
           switch-type
           toggle-type)))
+
     (if (unity-file-exists-p
          temp-name
          (unity-dest-file-type switch-type) toggle-type)
@@ -888,6 +902,27 @@ such as \"mch-type\"."
             "Invalid switch-type"
             switch-type
             "in  unity-select-replacement-suffix"))))
+
+(defun unity-select-replaced-suffix (switch-type)
+  (cond ((equal switch-type "model-to-conductor")
+         unity-model-file-suffix)
+        ((equal switch-type "model-to-hardware")
+         unity-model-file-suffix)
+        ((equal switch-type "conductor-to-hardware")
+         "Conductor")
+        ;;         unity-conductor-file-suffix)
+        ((equal switch-type "conductor-to-model")
+         unity-conductor-file-suffix)
+        ((equal switch-type "hardware-to-conductor")
+         unity-hardware-file-suffix
+         (unity-replace-regex-in-string
+          (concat (unity-select-replaced-suffix switch-type) "\\"
+                  unity-src-file-extension "$")
+          (concat (unity-select-replacement-suffix switch-type)
+                  unity-src-file-extension)
+          ;;convert to src if header
+          (unity-header-to-src-file-name
+           file-name)))))
 
 (defun unity-select-replaced-suffix (switch-type)
   (cond ((equal switch-type "model-to-conductor")
@@ -946,35 +981,59 @@ such as \"mch-type\"."
             toggle-type
             "in unity-convert-file-name"))))
 
-(defun unity-toggle-test-src-header-buffer ()
+(defun unity-cycle-test-src-header-buffer (&optional test test-file)
   "Toggle between test source file "
   (interactive)
-  (let ((file-name (file-name-nondirectory buffer-file-name)))
+  (let ((return nil)
+        (file-name
+         (if(not test-file)
+             (file-name-nondirectory buffer-file-name)
+           test-file)))
+    
     (cond ((unity-is-test-file-p file-name)
+           (if test
+               (setq return
+               (unity-switch-buffer
+                file-name
+                "test-to-src"
+                "non-mch-type" test))) ;passes true if test
            (if(not
                (unity-switch-buffer
                 file-name
                 "test-to-src"
-                "non-mch-type"))
+                "non-mch-type" test)) ;passes true if test
+
                (if(not
                    (unity-switch-buffer
-                    file-name "test-to-header" "non-mch-type"))
+                    file-name "test-to-header" "non-mch-type" test))
                    (unity-error "No matching source or header file"))))
           
           ((unity-is-src-file-p file-name)
+           (if test
+               (setq return
+               (unity-switch-buffer
+                file-name
+                "src-to-header"
+                "non-mch-type" test))) ;passes true if test
            (if(not
                (unity-switch-buffer
                 file-name
                 "src-to-header"
-                "non-mch-type"))
+                "non-mch-type" test))
                (if(not
                    (unity-switch-buffer
                     file-name
                     "src-to-test"
                     "non-mch-type"))
-                   (unity-error "No matching test or header file"))))
+                   (unity-error "No matching test or header file" test))))
           
           ((unity-is-header-file-p file-name)
+           (if test
+               (setq return
+               (unity-switch-buffer
+                file-name
+                "header-to-test"
+                "non-mch-type" test))) ;passes true if test
            (if(not
                (unity-switch-buffer
                 file-name
@@ -986,10 +1045,11 @@ such as \"mch-type\"."
                     "header-to-src"
                     "non-mch-type"))
                    (unity-error "No matching src or test file"))))
-          ( t (unity-error "File invalid")))))
+          ( t (unity-error "File invalid")))
+    return))
 
-(defun unity-toggle-MCH-buffer ()
-  "Toggle between model conductor and hardware buffers "
+(defun unity-cycle-MCH-buffer ()
+  "Cycle between model conductor and hardware buffers "
   (interactive)
   (let ((file-name
          (file-name-nondirectory buffer-file-name)))
@@ -1047,8 +1107,8 @@ such as \"mch-type\"."
               (unity-error "No matching file"))))
      (t (unity-error "File invalid")))))
 
-(defun unity-toggle-alphabetic-group (&optional group)
-  "Toggle between files alphabetically contained within current buffer directory.
+(defun unity-cycle-alphabetic-group (&optional group test)
+  "Cycle between files alphabetically contained within current buffer directory.
 
 Argument GROUP can indicate an alternative directory."
 
@@ -1074,7 +1134,7 @@ Argument GROUP can indicate an alternative directory."
 
 (defun unity-test ()
   (interactive)
-  (unity-toggle-alphabetic-group unity-src-dir))
+  (unity-cycle-alphabetic-group unity-src-dir))
 
 (defun unity-index-current-buffer(file-name)  
   (let ((header-files 
@@ -1159,17 +1219,6 @@ ATTRIB-TYPE attribute type (string)
              attrib-type
              "in unity-read-attribute"))))
 
-;; (defun unity-pop-extension (file-name inner)
-;;   "pops extension to activate inner closure before restoring extension
-
-;; Parameters:
-;; FILE-NAME filename as string
-;; INNER clojure to perform
-;; "
-;;   (let ((ext nil))
-;;   (setq ext (unity-read-attribute file-name "extension-type"))
-;;   (inner file-name)))
-
 (defun unity-remove-extension (file-name) 
   (let ((temp nil)
         (ext nil))
@@ -1182,25 +1231,32 @@ ATTRIB-TYPE attribute type (string)
            file-name))
     temp))
 
-(defun test-func-1 (param)
-  (concat "Test" param))
-
 (defun operate-sub-extension (callee file-name &optional optional)
   (let ((ext (unity-read-extension file-name)))
     (concat
      (funcall callee (unity-remove-extension file-name) optional)
      ext)))
 
+(defun operate-sub-prefix (callee file-name &optional optional)
+  (let ((ext (unity-read-extension file-name)))
+    (concat
+     (funcall callee (unity-remove-extension file-name) optional)
+     ext)))
 
-
-
-
-
-;; (defun test-func-1 ()  "test-func-1"
-;;    (interactive "*")
-;;    (insert-string "testing callers"))
-
-;; (defun func-caller (callee)
-;;   "Execute callee"
-;;   (funcall callee))
-;; (func-caller 'test-func-1)
+(defun unity-read-prefix (file-name)
+  "return prefix if it exists or nil"
+  (let ((case-fold-search nil)
+        (case-replace nil)
+        (prefix nil)
+        (temp nil))
+    (mapcar (lambda (x)
+              (progn
+                (setq temp
+                      (string-match
+                       (concat "^" x)
+                       file-name))
+                (if temp
+                    (progn
+                      (setq prefix x)))))
+            (unity-file-prefix-list))
+    prefix))

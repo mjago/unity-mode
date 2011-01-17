@@ -37,37 +37,41 @@ This is done once at project birth and is initiated by typing
   therefore under revision-control for easy resumption of projects).
   Of course unity-setup can be re-run at any time to modify the setup. 
 
-  - DONE test/src/header fast single key/chord navigation cycling. Ideally this should be dedicated to a single key for speed. I have it mapped to F5 with the following in my init file...
+**** test - src - header fast single key/chord navigation cycling. 
 
-  (global-set-key [f5] 'unity-toggle-test-src-header-buffer)
+     Ideally this should be dedicated to a single key for speed. I have it mapped to F5 with the following in my init file...
 
-  This is also available out of the box with...
+     (global-set-key [f5] 'unity-toggle-test-src-header-buffer)
 
-  C-; C-t
+     This is also available out of the box with...
 
-  - DONE Model-Conductor-Hardware, Presenter-First (or other) design-pattern fast-key navigation cycling. This enables
-  rapid navigation between pattern modules within the project (test
-  and source etc). The cycling is intelligent enough to ignore missing
-  and unneeded modules etc. 
+     C-; C-t
 
-  Configuration is part of the automated unity-setup but can be
-  altered at any point in time. 
+**** Model-Conductor-Hardware, Presenter-First (or other) design-pattern fast-key navigation cycling. This enables
+     rapid navigation between pattern modules within the project (test
+     and source etc). The cycling is intelligent enough to ignore missing
+     and unneeded modules etc. 
 
-  Ideally this should be dedicated to a single chord/key for speed. I have it mapped to C-F5 with the following in my init file...
+     Configuration is part of the automated unity-setup but can be
+     altered at any point in time. 
 
-  (global-set-key [C-f5] 'unity-toggle-MCH-buffer)
+     Ideally this should be dedicated to a single chord/key for speed. I have it mapped to C-F5 with the following in my init file...
 
-  This is also available out of the box with...
+     (global-set-key [C-f5] 'unity-toggle-MCH-buffer)
 
-  C-; C-m
+     This is also available out of the box with...
 
-  - DONE Fast enabling / disabling  of tests (the cursor simply needs to be
-    somewhere over the test in question. This can be mapped to a
-    single keystroke and is available out of the box with 
+     C-; C-m
 
-  C-; C-i
+**** Fast enabling / disabling  of tests (the cursor simply needs to be
+     somewhere over the test in question. This can be mapped to a
+     single keystroke and is available out of the box with 
 
-  - DONE Key-map colour configuration.
+     C-; C-i
+
+**** Key-map colour configuration.
+
+**** Other.
 
   - TODO Finish Auto Unity-Mode configuration file generation
     - project.org, project.yml

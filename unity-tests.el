@@ -13,19 +13,21 @@ Must remember to add / remove relevent src files though!.
 
 (defvar unity-test-time '(19750 . 10)) ;;used for ert tests
 
- (ert-deftest unit-check-prefix-test-p ()
+ (ert-deftest unity-check-prefix-test-p ()
    (should (unity-check-prefix-p
             "Testsomething.c" "test-file"))
-  (should-not (unity-check-prefix-p
-               "testsomething.c" "test-file"))
+  (should (unity-check-prefix-p
+               "TestsomethingConductor.c" "test-file"))
   (should-not (unity-check-prefix-p
                "something.h" "test-file"))
   (should (unity-check-prefix-p
            "Testsomething.h" "test-file"))
   (should (unity-check-prefix-p
            "testsomething.h" "src-file"))
-  (should-not (unity-check-prefix-p
-               "Test_file.c" "src-file"))
+  (should (unity-check-prefix-p
+               "Test_fileConductor.c" "test-file"))
+  (should (unity-check-prefix-p
+               "fileConductor.c" "src-file"))
   )
 
 (ert-deftest unit-check-suffix-test-p ()
@@ -85,7 +87,7 @@ Must remember to add / remove relevent src files though!.
   (should-not (unity-is-file-type-p "~/docs/Test_file.ccc" "test-file"))
   (should-not (unity-is-file-type-p "" "test-file"))
 
- (should-not (unity-is-file-type-p "Test_file.c" "src-file"))
+ (should (unity-is-file-type-p "Test_file.c" "src-file")) ;TODO!!
   (should-not (unity-is-file-type-p "file.h" "src-file"))
   (should (unity-is-file-type-p "file.c" "src-file"))
   (should (unity-is-file-type-p "~/src/src/file.c" "src-file"))
@@ -95,14 +97,16 @@ Must remember to add / remove relevent src files though!.
   )
 
 (ert-deftest unity-is-src-file-p-returns-correct-result ()
-  (should-not (unity-is-src-file-p "Test_file.c"))
-  (should-not (unity-is-src-file-p "file.h"))
+ (should (unity-is-src-file-p "Test_file.c")) ;TODO is this what we want?
+ (should (unity-is-src-file-p "fileConductor.c"))
+  (should-not (unity-is-src-file-p "file.h")) 
   (should (unity-is-src-file-p "file.c"))
   (should (unity-is-src-file-p "~/src/src/file.c"))
-  (should-not (unity-is-src-file-p "~/build/file.cout")))
+  (should-not (unity-is-src-file-p "~/build/file.cout"))
+  )
 
 (ert-deftest unity-is-header-file-p-returns-correct-result ()
-  (should-not (unity-is-header-file-p "Test_file.h")) ;;TODO is this
+  (should (unity-is-header-file-p "Test_file.h")) ;;TODO is this
   ;;what we want?
   (should-not (unity-is-header-file-p "file.c"))
   (should (unity-is-header-file-p "file.h"))
@@ -214,22 +218,22 @@ Must remember to add / remove relevent src files though!.
                    (buffer-name)))
     (should-not (unity-buffer-is-header-p))))
 
-;; (ert-deftest unity-find-root-dir-test ()
-;;   (should
-;;    (equal "~/ceedling5/trunk/examples/temp_sensor/"
-;;           (unity-find-root-dir
-;;            "~/ceedling5/trunk/examples/temp_sensor/test/TestAdcConductor.c")))
-;;   (should
-;;    (equal
-;;     "~/ceedling5/trunk/examples/temp_sensor/"
-;;     (unity-find-root-dir
-;;      "~/ceedling5/trunk/examples/temp_sensor/test/AdcConductor.h")))
-;;   (should
-;;    (equal
-;;     "~/ceedling5/trunk/examples/temp_sensor/"
-;;     (unity-find-root-dir
-;;      "~/ceedling5/trunk/examples/temp_sensor/test/AdcConductor.c")))
-;;   (should-not (unity-find-root-dir "/")))
+;; ;; (ert-deftest unity-find-root-dir-test ()
+;; ;;   (should
+;; ;;    (equal "~/ceedling5/trunk/examples/temp_sensor/"
+;; ;;           (unity-find-root-dir
+;; ;;            "~/ceedling5/trunk/examples/temp_sensor/test/TestAdcConductor.c")))
+;; ;;   (should
+;; ;;    (equal
+;; ;;     "~/ceedling5/trunk/examples/temp_sensor/"
+;; ;;     (unity-find-root-dir
+;; ;;      "~/ceedling5/trunk/examples/temp_sensor/test/AdcConductor.h")))
+;; ;;   (should
+;; ;;    (equal
+;; ;;     "~/ceedling5/trunk/examples/temp_sensor/"
+;; ;;     (unity-find-root-dir
+;; ;;      "~/ceedling5/trunk/examples/temp_sensor/test/AdcConductor.c")))
+;; ;;   (should-not (unity-find-root-dir "/")))
 
 (ert-deftest unity-check-for-ceedling-directories-p-test ()
   (should (unity-check-for-ceedling-directories-p
@@ -357,81 +361,81 @@ task :default => [:clobber, 'test:all']\n\n"
   (should-not
    (unity-search-for-project-root-by-rakefile "~/")))
 
-;; ;; (ert-deftest unity-find-src-for-test-file-correct-whatever ()
-;; ;;   (should (equal ""
-;; ;;                  (unity-find-src-for-test-file "test_file.c" "~/ceedling5/trunk/examples/temp_sensor/"))))
+;; ;; ;; (ert-deftest unity-find-src-for-test-file-correct-whatever ()
+;; ;; ;;   (should (equal ""
+;; ;; ;;                  (unity-find-src-for-test-file "test_file.c" "~/ceedling5/trunk/examples/temp_sensor/"))))
 
-;; ;; (ert-deftest unity-find-src-for-test-file-correct-whatever ()
-;; ;;   (should (equal ""
-;; ;;                  (unity-find-src-for-test-file "test_file.c"))))
+;; ;; ;; (ert-deftest unity-find-src-for-test-file-correct-whatever ()
+;; ;; ;;   (should (equal ""
+;; ;; ;;                  (unity-find-src-for-test-file "test_file.c"))))
 
-;; ;; (ert-deftest unity-generate-directories-test ()
-;; ;;   (let ((ert-test-dir "~/.emacs.d/martyn/martyn/unity-mode/ert-test/"))
-;; ;;     (if (file-directory-p ert-test-dir)
-;; ;;         (delete-directory ert-test-dir))
+;; ;; ;; (ert-deftest unity-generate-directories-test ()
+;; ;; ;;   (let ((ert-test-dir "~/.emacs.d/martyn/martyn/unity-mode/ert-test/"))
+;; ;; ;;     (if (file-directory-p ert-test-dir)
+;; ;; ;;         (delete-directory ert-test-dir))
 
-;; ;;     (make-directory ert-test-dir)
-;; ;;     (setq unity-directory-list 
-;; ;;           `(,(concat ert-test-dir "test-1/")
-;; ;;             ,(concat ert-test-dir "test-2/")
-;; ;;             ,(concat ert-test-dir "test-3/")))
+;; ;; ;;     (make-directory ert-test-dir)
+;; ;; ;;     (setq unity-directory-list 
+;; ;; ;;           `(,(concat ert-test-dir "test-1/")
+;; ;; ;;             ,(concat ert-test-dir "test-2/")
+;; ;; ;;             ,(concat ert-test-dir "test-3/")))
 
-;; ;;     (unity-generate-directories unity-directory-list)
-;; ;;     (loop for i in unity-directory-list
-;; ;;           collect(should (file-directory-p i)))
-;; ;;     (loop for i in unity-directory-list
-;; ;;           collect(delete-directory i))
+;; ;; ;;     (unity-generate-directories unity-directory-list)
+;; ;; ;;     (loop for i in unity-directory-list
+;; ;; ;;           collect(should (file-directory-p i)))
+;; ;; ;;     (loop for i in unity-directory-list
+;; ;; ;;           collect(delete-directory i))
 
-;; ;;     (delete-directory ert-test-dir)))
+;; ;; ;;     (delete-directory ert-test-dir)))
 
-;; ;; (ert-deftest unity-build-missing-directories-list-test ()
-;; ;;   (let ((ert-test-dir "~/.emacs.d/martyn/martyn/unity-mode/ert-test/"))
-;; ;;     (if (file-directory-p ert-test-dir)
-;; ;;         (delete-directory ert-test-dir))
+;; ;; ;; (ert-deftest unity-build-missing-directories-list-test ()
+;; ;; ;;   (let ((ert-test-dir "~/.emacs.d/martyn/martyn/unity-mode/ert-test/"))
+;; ;; ;;     (if (file-directory-p ert-test-dir)
+;; ;; ;;         (delete-directory ert-test-dir))
 
-;; ;;     (unity-generate-directories
-;; ;;      `(,(concat ert-test-dir)
-;; ;;        ,(concat ert-test-dir "test-3/")))
+;; ;; ;;     (unity-generate-directories
+;; ;; ;;      `(,(concat ert-test-dir)
+;; ;; ;;        ,(concat ert-test-dir "test-3/")))
 
-;; ;;     (should
-;; ;;      (equal
-;; ;;       `(,(concat ert-test-dir "test-2/")
-;; ;;         ,(concat ert-test-dir "test-1/"))
-;; ;;       (unity-build-missing-directories-list
-;; ;;        `(,(concat ert-test-dir "test-1/")
-;; ;;          ,(concat ert-test-dir "test-2/")
-;; ;;          ,(concat ert-test-dir "test-3/")))))
+;; ;; ;;     (should
+;; ;; ;;      (equal
+;; ;; ;;       `(,(concat ert-test-dir "test-2/")
+;; ;; ;;         ,(concat ert-test-dir "test-1/"))
+;; ;; ;;       (unity-build-missing-directories-list
+;; ;; ;;        `(,(concat ert-test-dir "test-1/")
+;; ;; ;;          ,(concat ert-test-dir "test-2/")
+;; ;; ;;          ,(concat ert-test-dir "test-3/")))))
 
-;; ;;     (should
-;; ;;      (equal
-;; ;;       `(,unity-mocks-dir)
-;; ;;       (unity-build-missing-directories-list
-;; ;;        `(,unity-project-root-dir
-;; ;;          ,unity-ceedling-root-dir
-;; ;;          ,unity-unity-root-dir
-;; ;;          ,unity-ceedling-root-dir
-;; ;;          ,unity-cmock-root-dir
-;; ;;          ,unity-plugins-dir
-;; ;;          ,unity-custom-plugins-dir
-;; ;;          ,unity-src-dir
-;; ;;          ,unity-header-dir
-;; ;;          ,unity-test-dir
-;; ;;          ,unity-mocks-dir
-;; ;;          ,unity-build-dir))))
+;; ;; ;;     (should
+;; ;; ;;      (equal
+;; ;; ;;       `(,unity-mocks-dir)
+;; ;; ;;       (unity-build-missing-directories-list
+;; ;; ;;        `(,unity-project-root-dir
+;; ;; ;;          ,unity-ceedling-root-dir
+;; ;; ;;          ,unity-unity-root-dir
+;; ;; ;;          ,unity-ceedling-root-dir
+;; ;; ;;          ,unity-cmock-root-dir
+;; ;; ;;          ,unity-plugins-dir
+;; ;; ;;          ,unity-custom-plugins-dir
+;; ;; ;;          ,unity-src-dir
+;; ;; ;;          ,unity-header-dir
+;; ;; ;;          ,unity-test-dir
+;; ;; ;;          ,unity-mocks-dir
+;; ;; ;;          ,unity-build-dir))))
 
-;; ;;     (loop for i in 
-;; ;;           `(,(concat ert-test-dir "test-3/"))
-;; ;;           collect(delete-directory i))))
+;; ;; ;;     (loop for i in 
+;; ;; ;;           `(,(concat ert-test-dir "test-3/"))
+;; ;; ;;           collect(delete-directory i))))
 
-;; ;;(ert-deftest unity-file-exists-p-test () 
-;; ;; (should (unity-file-exists-p "TestAdcConductor.c" "test-type"))
-;; ;; (should (unity-file-exists-p "TestAdcConductor.c" "test-type"))
-;; ;; (should (unity-file-exists-p "AdcConductor.c" "src-type"))
-;; ;; (should (unity-file-exists-p "AdcConductor.h" "header-type"))
+;; ;; ;;(ert-deftest unity-file-exists-p-test () 
+;; ;; ;; (should (unity-file-exists-p "TestAdcConductor.c" "test-type"))
+;; ;; ;; (should (unity-file-exists-p "TestAdcConductor.c" "test-type"))
+;; ;; ;; (should (unity-file-exists-p "AdcConductor.c" "src-type"))
+;; ;; ;; (should (unity-file-exists-p "AdcConductor.h" "header-type"))
 
-;; ;; (should
-;; ;;  (unity-file-exists-p
-;; ;;   "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcConductor.c")))
+;; ;; ;; (should
+;; ;; ;;  (unity-file-exists-p
+;; ;; ;;   "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcConductor.c")))
 
 
 (ert-deftest unity-switch-buffer-with-switch-type-test-to-src ()
@@ -464,11 +468,11 @@ task :default => [:clobber, 'test:all']\n\n"
                  (unity-switch-buffer
                   "AdcHardwareConfigurator.h" "header-to-src" "non-mch-type" t))))
 
-;; (ert-deftest unity-switch-buffer-with-switch-type-model-to-conductor ()
-;;   (should (equal "TestAdcConductor.c"
-;;                  (unity-switch-buffer
-;;                   "TestAdcModel.c" "model-to-conductor" "mch-type" t))))
-
+(ert-deftest unity-switch-buffer-with-switch-type-model-to-conductor ()
+  (should (equal "AdcConductor.c"
+                 (unity-switch-buffer
+                  "AdcModel.c" "model-to-conductor" "mch-type" t)))
+)
 (ert-deftest unity-switch-buffer-with-switch-type-model-to-hardware ()
   (should (equal "AdcHardware.c"
                  (unity-switch-buffer
@@ -494,10 +498,10 @@ task :default => [:clobber, 'test:all']\n\n"
                  (unity-switch-buffer
                   "AdcHardware.c" "hardware-to-conductor" "mch-type" t))))
 
-;; (ert-deftest unity-switch-buffer-with-test-file-type-and-switch-type-hardware-to-conductor ()
-;;   (should (equal "TestAdcConductor.c"
-;;                  (unity-switch-buffer
-;;                   "TestAdcHardware.c" "hardware-to-conductor" "mch-type" t))))
+ (ert-deftest unity-switch-buffer-with-test-file-type-and-switch-type-hardware-to-conductor ()
+   (should (equal "TestAdcConductor.c"
+                  (unity-switch-buffer
+                   "TestAdcHardware.c" "hardware-to-conductor" "mch-type" t))))
 
 (ert-deftest unity-switch-buffer-with-header-and-switch-type-hardware-to-conductor ()
   (should (equal "AdcConductor.c"
@@ -624,84 +628,6 @@ task :default => [:clobber, 'test:all']\n\n"
   (should-not (unity-is-hardware-file-p "AdcModel.c"))
   (should-not (unity-is-hardware-file-p "Adchardware.h")) ;TODO is this what we want?
   (should (unity-is-hardware-file-p "nameHardware.c")))
-
-;; ;; (ert-deftest unity-test ()
-;; ;; (let ((list '()))
-;; ;;   (should(equal 0 (length list)))
-;; ;;   (cons "a" list)
-;; ;; ;  (should(equal '("a") list))
-;; ;;   (should(equal "a" (car '("a" "b" "c"))))
-;; ;;   (should(equal 3 (length '("a" "b" "c"))))
-;; ;;   (should(equal '("d" "a" "b" "c") (cons  "d" '("a" "b" "c"))))
-;; ;;   (should (equal :index :index))
-;; ;;   (should (markerp :index))
-
-;; ;;  )) ;; end
-
-
-;; ;; what is a module?
-
-
-;; ;; [prefix][nam][suffix][extension]
-
-;; ;; ie [test_][ADC][_conductor][.c]
-
-
-;; ;; (name . "ADC")
-;; ;; ((prefix . "test_")
-;; ;; (suffix . _ADC)
-;; ;; (extension . ".c")
-;; ;; (order . '(prefix suffix name extension))
-;; ;; (active-view . t)
-;; ;; (test-group  . :global)
-;; ;; (active-test . t)
-;; ;; (visible . t)
-;; ;; (window . "primary")
-
-
-;; ;; (name . "I2C")
-;; ;; ((prefix . "test_")
-;; ;; (suffix . _I2C)
-;; ;; (extension . ".c")
-;; ;; (order . '(prefix suffix name extension))
-;; ;; (active-view . nil)
-;; ;; (active-test . t)
-;; ;; (test-group  . :production)
-;; ;; (visible . t)
-;; ;; (window . "secondary")
-
-
-
-
-
-;; ;; [][ADC_][main][.c]
-;; ;; [][ADC_][main][.h]
-;; ;; [test_][ADC_][main][.c]
-
-
-
-
-
-;; ;; loop 1 - iterate through extension / prefix
-;; ;; loop 2 - iterate through suffix
-;; ;; loop 3 - iterate through name
-
-;; ;; (ert-deftest unity-test ()
-;; ;;   (let ((my-list '(1 "6" "5" "4" "3" "AdcConductor.c" "1"))
-;; ;;         (text "1")
-;; ;;         (search-file "AdcConductor.c"))
-;; ;;     (let ((j 0) (searching t) result)
-;; ;;       (while searching
-;; ;;         (setq j (+ 1 j))
-;; ;;         (setq result (nth j my-list))
-;; ;;         (if(or(equal search-file result)
-;; ;;               (equal nil result))
-;; ;;             (setq searching nil)))
-;; ;;       (if result
-;; ;;           (error (number-to-string j))))))
-
-;; ;;(ert-deftest  unity-has-file-suffix-p-test ()
-;; ;;  (should (unity-has-file-suffix-p "nameConductor.c" "conductor-type")))
 
 (ert-deftest unity-error-test ()
   (should (equal "Error! (nil error message) !"
@@ -867,5 +793,25 @@ task :default => [:clobber, 'test:all']\n\n"
                                         "FilenameConductor.hhh"
                                         "suffix-type"))))
 
+(ert-deftest unity-read-prefix-test ()
+    (should (equal "Test" (unity-read-prefix "TestSomeNameConductor.c")))
+  )
 
+(ert-deftest unity-cycle-test-src-header-buffer-test ()
+  (should(equal
+          "AdcConductor.c"
+          (unity-cycle-test-src-header-buffer
+           t
+           "TestAdcConductor.c" )))
+  (should(equal
+          "AdcConductor.h"
+          (unity-cycle-test-src-header-buffer
+           t
+           "AdcConductor.c" )))
+  (should(equal
+          "TestAdcConductor.c"
+          (unity-cycle-test-src-header-buffer
+           t
+           "AdcConductor.h" )))
+  )
 
