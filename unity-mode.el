@@ -1048,13 +1048,23 @@ such as \"mch-type\"."
           ( t (unity-error "File invalid")))
     return))
 
-(defun unity-cycle-MCH-buffer ()
+(defun unity-cycle-MCH-buffer  (&optional test test-file)
   "Cycle between model conductor and hardware buffers "
   (interactive)
-  (let ((file-name
-         (file-name-nondirectory buffer-file-name)))
+  (let ((return nil)
+        (file-name
+         (if(not test-file)
+             (file-name-nondirectory buffer-file-name)
+           test-file)))
+
     (cond
      ((unity-is-model-file-p file-name)
+      (if test
+          (setq return
+                (unity-switch-buffer
+                 file-name
+                 "model-to-conductor"
+                 "mch-type" test))) ;passes true if test
       (if(not
           (unity-switch-buffer
            file-name
@@ -1068,12 +1078,18 @@ such as \"mch-type\"."
               (unity-error "No matching conductor or hardware file"))))
      
      ((unity-is-conductor-file-p file-name)
+      (if test
+          (setq return
+                (unity-switch-buffer
+                 file-name
+                 "conductor-to-hardware"
+                 "mch-type" test))) ;passes true if test
       (if(not
           (unity-switch-buffer
            file-name
            "conductor-to-hardware"
            "mch-type"))
-          (if(not
+        (if(not
               (unity-switch-buffer
                file-name
                "conductor-to-model"
@@ -1081,10 +1097,16 @@ such as \"mch-type\"."
               (unity-error "No matching hardware or model file")))))
      
      ((unity-is-hardware-file-p file-name)
+      (if test
+          (setq return
+                (unity-switch-buffer
+                 file-name
+                 "hardware-to-conductor"
+                 "mch-type" test))) ;passes true if test
       (if(not
           (unity-switch-buffer
            file-name
-           "hardware-to-model"
+           "hardware-to-conductor"
            "mch-type"))
           (if(not
               (unity-switch-buffer
@@ -1105,16 +1127,28 @@ such as \"mch-type\"."
                "header-to-test"
                "non-mch-type"))
               (unity-error "No matching file"))))
-     (t (unity-error "File invalid")))))
+     (t (unity-error "File invalid")))
+    return))
 
-(defun unity-cycle-alphabetic-group (&optional group test)
+(defun unity-cycle-alphabetic-group (&optional test test-file)
   "Cycle between files alphabetically contained within current buffer directory.
 
 Argument GROUP can indicate an alternative directory."
 
   (interactive)
-  (let ((file-name (file-name-nondirectory buffer-file-name)))
+  (let ((return nil)
+        (file-name
+         (if(not test-file)
+             (file-name-nondirectory buffer-file-name)
+           test-file)))
+
     (cond ((unity-is-test-file-p file-name)
+           (if test
+               (setq return
+                     (unity-switch-buffer
+                      file-name
+                      "test-to-src"
+                      "non-mch-type" test))) ;passes true if test
            (if(not
                (unity-switch-buffer
                 file-name
@@ -1130,7 +1164,8 @@ Argument GROUP can indicate an alternative directory."
                 (unity-index-current-buffer file-name)
                 "header-to-src")
                (unity-error "File loaded")))
-          ( t (unity-error "File invalid")))))
+          ( t (unity-error "File invalid")))
+    return))
 
 (defun unity-test ()
   (interactive)

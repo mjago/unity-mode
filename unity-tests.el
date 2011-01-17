@@ -1,16 +1,6 @@
 
 (provide 'unity-tests)
 
-(defun unity-eval-src-and-tests ()
-  "bound to a single key macro at design time for speed.
-Also avoids the problem of un-evaled code getting ignored.
-Must remember to add / remove relevent src files though!.
-"
-  (interactive)
-  (eval-buffer "unity-tests.el")
-  (eval-buffer "unity-mode.el")
-  (ert t))
-
 (defvar unity-test-time '(19750 . 10)) ;;used for ert tests
 
  (ert-deftest unity-check-prefix-test-p ()
@@ -815,3 +805,33 @@ task :default => [:clobber, 'test:all']\n\n"
            "AdcConductor.h" )))
   )
 
+(ert-deftest unity-cycle-MCH-buffer-test ()
+  (should(equal
+          "AdcConductor.c"
+          (unity-cycle-MCH-buffer
+           t
+           "AdcModel.c" )))
+  (should(equal
+          "TestAdcConductor.c"
+          (unity-cycle-MCH-buffer
+           t
+           "TestAdcModel.c" )))
+  (should(equal
+          "AdcHardware.c"
+          (unity-cycle-MCH-buffer
+           t
+           "AdcConductor.c" )))
+  (should(equal
+          "AdcConductor.c"
+          (unity-cycle-MCH-buffer
+           t
+           "AdcHardware.c" )))
+  )
+
+(ert-deftest unity-cycle-alphabetic-group ()
+  (should(equal
+          "AdcConductor.c"
+          (unity-cycle-test-src-header-buffer
+           t
+           "TestAdcConductor.c" )))
+  )
