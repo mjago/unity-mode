@@ -220,9 +220,9 @@ Unit testing integration"
         ((equal file-type "hardware-file")
          unity-model-file-suffix)
         ( t (unity-error-with-param 
-             "Invalid file-type")
+             "Invalid file-type"
             file-type
-            "in unity-file-prefix")))
+            "in unity-file-suffix"))))
 
 (defun unity-error (string &optional test)
   (let ((error-msg
@@ -356,8 +356,6 @@ Unit testing integration"
               file-type
               "in unity-check-extension-p")))))
 
-
-
 (defun unity-is-file-type-p (file-name file-type)
   "Returns true if the file name matches the file type"
   (and (unity-check-prefix-p file-name file-type)
@@ -389,15 +387,25 @@ Unit testing integration"
 
 (defun unity-is-src-file-p (file-name)
   "Returns t if filename has a C extension and is not a testfile"
-;  (dbg (unity-check-prefix-p file-name "src-file"));
-;  (dbg  (unity-check-extension-p file-name "src-file"))
+                                        ;  (dbg (unity-check-prefix-p file-name "src-file"));
+                                        ;  (dbg  (unity-check-extension-p file-name "src-file"))
   (and (unity-check-prefix-p file-name "src-file")
        (unity-check-extension-p file-name "src-file")))
-;TODO  (unity-is-file-type-p file-name "src-file"))
+                                        ;TODO  (unity-is-file-type-p file-name "src-file"))
 
 (defun unity-is-header-file-p (file-name)
   "Returns true if the file is a header file"
   (unity-is-file-type-p file-name "header-file"))
+
+(defun unity-get-suffix-file-type(suffix)
+  (if (equal suffix "")
+      "non-pattern-file"
+    (concat (downcase suffix) "-file")))
+
+(defun unity-dest-file-type (switch-type)
+  (concat
+   (unity-replace-regex-in-string "^.*-" "" switch-type)
+   "-type"))
 
 (defun unity-check-prefix-p (file-name file-type)
   (let ((prefix
@@ -410,16 +418,18 @@ Unit testing integration"
       ".*\\.*")
      (file-name-nondirectory file-name))))
 
-(defun unity-has-file-suffix-p (file-name file-type)
-  (let ((suffix
-         (unity-file-suffix file-type)))
-    
-    (unity-string-exact-match
-     (concat
-      "^.*"
-      suffix
-      "\\.*")
-     (file-name-nondirectory file-name))))
+;; (defun unity-check-suffix-p () (file-name file-type)
+;;   (let ((suffix
+;;          (unity-file-suffix file-type)))
+
+;;     (dbg "here")
+
+;;     (unity-string-exact-match
+;;      (concat
+;;       "^.*"
+;;       suffix
+;;       "\\.*")
+;;      (file-name-nondirectory file-name))))
 
 (defun unity-is-model-file-p (file-name)
   "Returns true if FILE-NAME is a model file"
@@ -993,10 +1003,10 @@ such as \"mch-type\"."
     (cond ((unity-is-test-file-p file-name)
            (if test
                (setq return
-               (unity-switch-buffer
-                file-name
-                "test-to-src"
-                "non-mch-type" test))) ;passes true if test
+                     (unity-switch-buffer
+                      file-name
+                      "test-to-src"
+                      "non-mch-type" test))) ;passes true if test
            (if(not
                (unity-switch-buffer
                 file-name
@@ -1011,10 +1021,10 @@ such as \"mch-type\"."
           ((unity-is-src-file-p file-name)
            (if test
                (setq return
-               (unity-switch-buffer
-                file-name
-                "src-to-header"
-                "non-mch-type" test))) ;passes true if test
+                     (unity-switch-buffer
+                      file-name
+                      "src-to-header"
+                      "non-mch-type" test))) ;passes true if test
            (if(not
                (unity-switch-buffer
                 file-name
@@ -1030,10 +1040,10 @@ such as \"mch-type\"."
           ((unity-is-header-file-p file-name)
            (if test
                (setq return
-               (unity-switch-buffer
-                file-name
-                "header-to-test"
-                "non-mch-type" test))) ;passes true if test
+                     (unity-switch-buffer
+                      file-name
+                      "header-to-test"
+                      "non-mch-type" test))) ;passes true if test
            (if(not
                (unity-switch-buffer
                 file-name
@@ -1089,7 +1099,7 @@ such as \"mch-type\"."
            file-name
            "conductor-to-hardware"
            "mch-type"))
-        (if(not
+          (if(not
               (unity-switch-buffer
                file-name
                "conductor-to-model"
@@ -1131,84 +1141,104 @@ such as \"mch-type\"."
     return))
 
 (defun unity-cycle-alphabetic-group (&optional test test-file)
+  (interactive)
   "Cycle between files alphabetically contained within current buffer directory.
 
-Argument GROUP can indicate an alternative directory."
+"
+  (let ((idx (unity-index-current-buffer)))
+    (if(not (unity-search-high-end-buffer idx))
+        (unity-search-low-end-buffer idx))))
 
-  (interactive)
-  (let ((return nil)
-        (file-name
-         (if(not test-file)
-             (file-name-nondirectory buffer-file-name)
+(defun unity-index-current-buffer(&optional test test-file)  
+  (let ((file-name 
+         (if(not test)
+             (buffer-file-name)
            test-file)))
+    (let ((files 
+           (directory-files 
+            (file-name-directory
+             file-name)))
+          (j 0)
+          (searching t)
+          (result nil))
 
-    (cond ((unity-is-test-file-p file-name)
-           (if test
-               (setq return
-                     (unity-switch-buffer
-                      file-name
-                      "test-to-src"
-                      "non-mch-type" test))) ;passes true if test
-           (if(not
-               (unity-switch-buffer
-                file-name
-                "test-to-src"
-                "non-mch-type"))
-               (if (not
-                    (unity-switch-buffer
-                     file-name "test-to-header" "non-mch-type"))
-                   (unity-error "No matching source or header file"))))
-          
-          ((unity-is-src-file-p file-name)
-           (if (unity-search-higher-buffer
-                (unity-index-current-buffer file-name)
-                "header-to-src")
-               (unity-error "File loaded")))
-          ( t (unity-error "File invalid")))
-    return))
+      (while searching
+        (setq j (+ 1 j))
+        (setq result (nth j files))
+        (if(or(equal result (file-name-nondirectory file-name))
+              (equal nil result))
+            (setq searching nil)))
+      (if(not result)
+          (setq j nil))
+      j)))
 
-(defun unity-test ()
-  (interactive)
-  (unity-cycle-alphabetic-group unity-src-dir))
-
-(defun unity-index-current-buffer(file-name)  
-  (let ((header-files 
+(defun unity-search-high-end-buffer(index &optional test test-file)
+  (let ((files
          (directory-files 
           (file-name-directory
-           buffer-file-name)))
+           (if(not test)
+               (buffer-file-name)
+             test-file))))
+        (j index)
+        (searching t)
+        (result nil))
+    (let ((suffix (unity-get-suffix-file-type
+                   (unity-read-suffix
+                    (nth j files)))))
+      
+      (while searching
+        (setq j (+ 1 j))
+        (setq result (nth j files))
+        (if (or
+             (equal nil result)
+             (and
+              (unity-check-suffix-p
+               result
+               suffix)
+              (unity-check-extension-p
+               result suffix)))
+            (progn
+              (setq searching nil)
+              (if(and(not test)
+                     result)
+                  (find-file
+                   (nth j files))))))
+      result)))
+
+(defun unity-search-low-end-buffer(index &optional test test-file)
+  (let ((files
+         (directory-files 
+          (file-name-directory
+           (if(not test)
+               (buffer-file-name)
+             test-file))))
         (j 0)
         (searching t)
         (result nil))
-    
-    (while searching
-      (setq j (+ 1 j))
-      (setq result (nth j header-files))
-      (if(or(equal result file-name)
-            (equal nil result))
-          (setq searching nil)))
-    j))
-
-(defun unity-search-higher-buffer(index file-type)
-  (let ((header-files 
-         (directory-files 
-          (file-name-directory
-           buffer-file-name)))
-        (j 0)
-        (searching t)
-        (result nil))
-    
-    (while searching
-      (setq j (+ 1 j))
-      (setq result (nth j header-files))
-      (if (or
-           (equal nil result)
-           (cond ((unity-is-src-file-p result)
-                  (unity-switch-buffer
-                   file-name
-                   file-type
-                   "non-mch-type"))))
-          (setq searching nil)))
-    j))
+    (let ((suffix (unity-get-suffix-file-type
+                   (unity-read-suffix
+                    (nth j files)))))
+      
+      (while searching
+        (setq j (+ 1 j))
+        (setq result (nth j files))
+        (if (or
+             (equal index j)
+             (equal nil result)
+             (and
+              (unity-check-suffix-p
+               result
+               suffix)
+              (unity-check-extension-p
+               result suffix)))
+            (progn
+              (setq searching nil)
+              (if(not test)
+              (if(and(not test)
+                     result)
+                  (find-file
+                   (nth j files)))))))
+      result)))
 
 (defun unity-string-exact-match (regex string &optional start)
   (let ((case-fold-search nil)
@@ -1282,16 +1312,30 @@ ATTRIB-TYPE attribute type (string)
   "return prefix if it exists or nil"
   (let ((case-fold-search nil)
         (case-replace nil)
-        (prefix nil)
+        (prefix "")
         (temp nil))
     (mapcar (lambda (x)
-              (progn
-                (setq temp
-                      (string-match
-                       (concat "^" x)
-                       file-name))
-                (if temp
-                    (progn
-                      (setq prefix x)))))
+              (setq temp
+                    (string-match
+                     (concat "^" x)
+                     file-name))
+              (if temp
+                  (setq prefix x)))
             (unity-file-prefix-list))
     prefix))
+
+(defun unity-read-suffix  (file-name)
+  (let ((case-fold-search nil)
+        (case-replace nil)
+        (suffix "")
+        (temp nil))
+    (mapcar (lambda (x)
+              (setq temp
+                    (string-match
+                     (concat  x "$")
+                     (file-name-sans-extension file-name)))
+              (if temp
+                  (setq suffix x)))
+            (unity-file-suffix-list))
+    suffix))
+

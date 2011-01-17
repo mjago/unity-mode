@@ -20,9 +20,14 @@
                "fileConductor.c" "src-file"))
   )
 
-(ert-deftest unit-check-suffix-test-p ()
+(ert-deftest unit-check-suffix-p-test ()
   (unity-check-suffix-p
-   "somethingConductor.c" "conductor-file"))
+   "somethingConductor.c" "conductor-file")
+  (unity-check-suffix-p
+   "somethingHardware.c" "hardware-file")
+  (unity-check-suffix-p
+   "somethingModel.c" "model-file")
+  )
 
 (ert-deftest unity-assert-test ()
   (should t))
@@ -835,3 +840,67 @@ task :default => [:clobber, 'test:all']\n\n"
            t
            "TestAdcConductor.c" )))
   )
+
+(ert-deftest unity-buffer-file-name-test ()
+  (should-not (buffer-file-name))) ;NOTE! The testing scope messes this up
+
+(ert-deftest unity-index-current-buffer-test ()
+  (should (equal
+           4
+           (unity-index-current-buffer
+            t
+            "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcConductor.c" )))
+  (should (equal
+           6
+           (unity-index-current-buffer
+            t
+            "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcHardware.c" )))
+  )
+
+(ert-deftest unity-search-high-end-buffer-test ()
+     (should
+      (equal
+       "TimerConductor.c"
+       (unity-search-high-end-buffer
+        4
+        t
+        "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcConductor.c")))
+     (should
+      (equal
+       "AdcModel.c"
+       (unity-search-high-end-buffer
+        6
+        t
+        "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcHardware.c")))
+
+     )
+
+(ert-deftest unity-read-suffix-test ()
+  (should (equal
+           "Conductor"
+           (unity-read-suffix "AdcConductor.c")))
+  (should (equal
+           "Hardware"
+           (unity-read-suffix "AdcHardware.c")))
+  ;; (should (equal
+  ;;          "Model"
+  ;;          (unity-read-suffix "AdcModel.c")))
+  ;; (should (equal
+  ;;          ""
+  ;;          (unity-read-suffix "Adc.h")))
+  ;; (should (equal
+  ;;          ""
+  ;;          (unity-read-suffix "Adc.c")))
+  ;;  (should (equal
+  ;;           ""
+  ;;           (unity-read-suffix "TestAdc.c")))
+  )
+
+(ert-deftest unity-get-suffix-file-type ()
+  (should (equal "controller-file" (unity-get-suffix-file-type "Controller")))
+  (should (equal "model-file" (unity-get-suffix-file-type "Model")))
+  (should (equal "hardware-file" (unity-get-suffix-file-type "Hardware")))
+  (should (equal "non-pattern-file" (unity-get-suffix-file-type "")))
+  )
+
+  
