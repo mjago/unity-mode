@@ -1,0 +1,7 @@
+#name : TEST_ASSERT_UNLESS(condition)
+#contributor : Martyn Jago
+# Another way of calling TEST_ASSERT_FALSE
+# Evaluates whatever code is in condition 
+# and fails if it evaluates to true
+# --
+TEST_ASSERT_UNLESS(${1: condition});$0
