@@ -1,0 +1,4 @@
+#name : TEST_FAIL_MESSAGE()
+#contributor : Martyn Jago
+# --
+TEST_FAIL_MESSAGE("${1: Message}");$0

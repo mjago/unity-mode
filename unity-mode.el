@@ -768,7 +768,6 @@ examples/temp_sensor/rakefile.rb" ))
   (put-text-property
    0 (length msg) 'face `(foreground-color .,colour) msg) msg)
 
-(provide 'unity-mode)
 
 (defun unity-find-root-dir (&optional reference-file)
   (if (unity-is-code-file-p reference-file)
@@ -1392,4 +1391,8 @@ ATTRIB-TYPE attribute type (string)
                         (find-file
                          (nth j files)))))))
         result))))
+
+
+(add-hook 'c-mode-hook 'unity-mode)
+(provide 'unity-mode)
 

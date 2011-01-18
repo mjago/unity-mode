@@ -18,9 +18,10 @@
 *** Unity-Mode Features
 
  - This code is designed and tested with the help of [[http://www.emacswiki.org/emacs/ErtTestLibrary][ERT]] (unit-testing
-   library). The tests are run by 
+   library). The tests are run from within the unity_test_project with...
 
-    M-x ert 
+    M-x ert-run-tests 
+
 
 
 ****  Auto Unity-Mode configuration 
@@ -30,7 +31,7 @@
       Enables rapid automated and intelligent configuration of project
       structure in terms of directory layout, config file
       generation, directory generation - all overrideable.
-      This is done once at project birth and is initiated by typing 
+      This is done once at project birth and is initiated by typing...
 
       M-x unity-setup
 
@@ -42,7 +43,8 @@
 
 **** test - src - header fast single key/chord navigation cycling. 
 
-     Ideally this should be dedicated to a single key for speed. I have it mapped to F5 with the following in my init file...
+     Ideally this should be dedicated to a single key for speed. 
+     I have it mapped to F5 with the following in my init file...
 
      (global-set-key [f5] 'unity-toggle-test-src-header-buffer)
 
@@ -52,21 +54,21 @@
 
 **** Model-Conductor-Hardware, Presenter-First (or other) design-pattern fast-key navigation cycling. 
 
-     This enables rapid navigation between pattern modules within the project (test
-     and source etc). The cycling is intelligent enough to ignore missing
-     and unneeded modules etc. 
+     This enables rapid navigation between pattern modules within the
+     project (test and source etc). The cycling is intelligent enough
+     to ignore missing and unneeded modules etc. 
 
      Configuration is part of the automated unity-setup but can be
      altered at any point in time. 
 
-     Ideally this should be dedicated to a single chord/key for speed. I have it mapped to C-F5 with the following in my init file...
+     Ideally this should be dedicated to a single chord/key for
+     speed. I have it mapped to C-F5 with the following in my init file...
 
      (global-set-key [C-f5] 'unity-toggle-MCH-buffer)
 
      This is also available out of the box with...
 
      C-; C-m
-
 
 **** Alpha-File-Type fast-key navigation cycling (ascending). 
 
@@ -78,7 +80,8 @@
      Configuration is part of the automated unity-setup but can be
      altered at any point in time. 
 
-     Ideally this should be dedicated to a single chord/key for speed. I have it mapped to C-F5 with the following in my init file...
+     Ideally this should be dedicated to a single chord/key for
+     speed. I have it mapped to C-F5 with the following in my init file...
 
      (global-set-key [f6] 'unity-cycle-alpha-ascending)
 
@@ -93,7 +96,7 @@
      Ideally this should be dedicated to the ascending cycling key
      only shifted.
 
-     I have it mapped to S-f6 with the following in my init file...
+     I have it mapped to Shift F6 with the following in my init file...
 
      (global-set-key [S-f6] 'unity-cycle-alpha-descending)
 
@@ -113,17 +116,18 @@
 
 **** Key-map colour configuration.
 
-**** Features to complete
+**** TODO Features to complete
 
   - TODO Refactor for agnostic test-library use, agnostic project
-    design language
+    design language, multiple prefix /suffix definition
   - TODO Finish Auto Unity-Mode configuration file generation
     - project.org, project.yml
-  - TODO Finish assertion snippets and internalise for non-ynippets people
+  - TODO Finish assertion snippets and internalise for non-yasnippets people
   - TODO Finish conception and design of project.org
   - TODO Finish project.yml generation
   - TODO Finish test activation sequences
   - TODO Finish linked failure display
+  - TODO Start help screen for commands and snippets
   - TODO Start test summary display
   - TODO Start continuous-testing hook
   - TODO Start source dired selection

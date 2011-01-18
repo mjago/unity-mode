@@ -1,0 +1,4 @@
+#name : TEST_ONLY()
+#contributor : Martyn Jago
+# --
+TEST_ONLY();$0

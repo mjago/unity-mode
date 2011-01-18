@@ -1,0 +1,4 @@
+#name : TEST_ASSERT_TRUE()
+#contributor : Martyn Jago
+# --
+TEST_ASSERT_TRUE(${1: assertion});$0

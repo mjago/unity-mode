@@ -1,0 +1,4 @@
+#name : TEST_ASSERT_EQUAL_STRING(Expected, Actual)
+#contributor : Martyn Jago
+# --
+TEST_ASSERT_EQUAL_STRING("${1: Expected}", ${2: Actual});$0

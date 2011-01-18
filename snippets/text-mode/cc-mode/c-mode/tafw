@@ -1,0 +1,4 @@
+#name : TEST_ASSERT_FLOAT_WITHIN(Delta, Expected, Actual)
+#contributor : Martyn Jago
+# --
+TEST_ASSERT_FLOAT_WITHIN(${1: Delta}, ${2: Expected}, ${3: Actual});$0

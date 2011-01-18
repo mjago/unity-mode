@@ -1,0 +1,4 @@
+#name : TEST_ASSERT_FALSE()
+#contributor : Martyn Jago
+# --
+TEST_ASSERT_FALSE(${1: Assertion});

@@ -1,0 +1,4 @@
+#name : TEST_ASSERT_EQUAL_HEX()
+#contributor : Martyn Jago
+# --
+TEST_ASSERT_EQUAL_HEX(${1: Expected}, ${2: Actual});$0

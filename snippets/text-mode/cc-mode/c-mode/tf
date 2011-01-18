@@ -1,0 +1,9 @@
+#name : test function
+#contributor : Martyn Jago
+# --
+void test_${1:$$(subst-char-in-string 
+                  (string-to-char " ") 
+	          (string-to-char "_") text)}(void)
+  {
+    $0
+  }
