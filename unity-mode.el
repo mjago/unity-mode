@@ -16,6 +16,10 @@
   (kbd "C-; C-t") 'unity-cycle-test-src-header-buffer)
 (define-key unity-mode-keymap
   (kbd "C-; C-m") 'unity-cycle-MCH-buffer)
+(define-key unity-mode-keymap
+  (kbd "C-; C-n") 'unity-cycle-alpha-ascending)
+(define-key unity-mode-keymap
+  (kbd "C-; C-p") 'unity-cycle-alpha-descending)
 
 (define-key unity-mode-keymap
   (kbd "C-; r") 'unity-test)
@@ -25,8 +29,6 @@
   (kbd "C-; a") 'unity-test-all)
 (define-key unity-mode-keymap
   (kbd "C-; d") 'unity-test-delta)
-(define-key unity-mode-keymap
-  (kbd "C-; n") 'unity-new-menus)
 
 (defvar unity-mode-map nil) ; No local map
 (setq unity-mode-results-map (make-sparse-keymap))
@@ -221,8 +223,8 @@ Unit testing integration"
          unity-model-file-suffix)
         ( t (unity-error-with-param 
              "Invalid file-type"
-            file-type
-            "in unity-file-suffix"))))
+             file-type
+             "in unity-file-suffix"))))
 
 (defun unity-error (string &optional test)
   (let ((error-msg
@@ -1140,106 +1142,6 @@ such as \"mch-type\"."
      (t (unity-error "File invalid")))
     return))
 
-(defun unity-cycle-alphabetic-group (&optional test test-file)
-  (interactive)
-  "Cycle between files alphabetically contained within current buffer directory.
-
-"
-  (let ((idx (unity-index-current-buffer)))
-    (if(not (unity-search-high-end-buffer idx))
-        (unity-search-low-end-buffer idx))))
-
-(defun unity-index-current-buffer(&optional test test-file)  
-  (let ((file-name 
-         (if(not test)
-             (buffer-file-name)
-           test-file)))
-    (let ((files 
-           (directory-files 
-            (file-name-directory
-             file-name)))
-          (j 0)
-          (searching t)
-          (result nil))
-
-      (while searching
-        (setq j (+ 1 j))
-        (setq result (nth j files))
-        (if(or(equal result (file-name-nondirectory file-name))
-              (equal nil result))
-            (setq searching nil)))
-      (if(not result)
-          (setq j nil))
-      j)))
-
-(defun unity-search-high-end-buffer(index &optional test test-file)
-  (let ((files
-         (directory-files 
-          (file-name-directory
-           (if(not test)
-               (buffer-file-name)
-             test-file))))
-        (j index)
-        (searching t)
-        (result nil))
-    (let ((suffix (unity-get-suffix-file-type
-                   (unity-read-suffix
-                    (nth j files)))))
-      
-      (while searching
-        (setq j (+ 1 j))
-        (setq result (nth j files))
-        (if (or
-             (equal nil result)
-             (and
-              (unity-check-suffix-p
-               result
-               suffix)
-              (unity-check-extension-p
-               result suffix)))
-            (progn
-              (setq searching nil)
-              (if(and(not test)
-                     result)
-                  (find-file
-                   (nth j files))))))
-      result)))
-
-(defun unity-search-low-end-buffer(index &optional test test-file)
-  (let ((files
-         (directory-files 
-          (file-name-directory
-           (if(not test)
-               (buffer-file-name)
-             test-file))))
-        (j 0)
-        (searching t)
-        (result nil))
-    (let ((suffix (unity-get-suffix-file-type
-                   (unity-read-suffix
-                    (nth j files)))))
-      
-      (while searching
-        (setq j (+ 1 j))
-        (setq result (nth j files))
-        (if (or
-             (equal index j)
-             (equal nil result)
-             (and
-              (unity-check-suffix-p
-               result
-               suffix)
-              (unity-check-extension-p
-               result suffix)))
-            (progn
-              (setq searching nil)
-              (if(not test)
-              (if(and(not test)
-                     result)
-                  (find-file
-                   (nth j files)))))))
-      result)))
-
 (defun unity-string-exact-match (regex string &optional start)
   (let ((case-fold-search nil)
         (case-replace nil))
@@ -1338,4 +1240,156 @@ ATTRIB-TYPE attribute type (string)
                   (setq suffix x)))
             (unity-file-suffix-list))
     suffix))
+
+(defun unity-cycle-alpha-ascending ()
+  (interactive)
+  (unity-cycle-alphabetic-group buffer-file-name "ascending")
+  )
+
+(defun unity-cycle-alpha-descending ()
+  (interactive)
+  (unity-cycle-alphabetic-group buffer-file-name "descending")
+  )
+
+(defun unity-cycle-alphabetic-group (file-name search-direction &optional test test-file)
+  "Cycle between files alphabetically contained within current buffer directory."
+  
+  (let ((idx
+         (unity-index-current-buffer file-name)))
+    (cond ((equal search-direction "ascending")
+           (if(not
+               (unity-search-buffer idx file-name "higher" search-direction))
+               (unity-search-buffer idx file-name "lower" search-direction)))
+          ((equal search-direction "descending")
+           (if(not
+               (unity-search-buffer idx file-name "lower" search-direction))
+               (unity-search-buffer idx file-name "higher" search-direction)))
+          ( t (unity-error-with-param
+               "Invalid search-direction"
+               search-direction
+               "in unity-cycle-alphabetic-group")))))
+
+(defun unity-index-current-buffer(file-name &optional test)
+  (if(not buffer-file-name)
+      (unity-error "File must exist on disk - please save first")
+    (let ((files 
+           (directory-files 
+            (file-name-directory
+             file-name)))
+          (j 0)
+          (searching t)
+          (result nil))
+      (while searching
+        (setq j (+ 1 j))
+        (setq result (nth j files))
+        (if(or(equal result (file-name-nondirectory file-name))
+              (equal nil result))
+            (setq searching nil)))
+      (if(not result)
+          (setq j nil))
+      (message (number-to-string j))
+      j)))
+
+(defun unity-search-buffer
+  (index file-name higher-lower search-direction  &optional test)
+
+  (let ((files
+         (directory-files 
+          (file-name-directory file-name)))
+        (ext (file-name-extension file-name))
+        (searching t))
+
+    (let ((j
+           (cond ((equal search-direction "ascending")
+                  (cond ((equal higher-lower "higher")
+                         index)
+                        ((equal higher-lower "lower" )
+                         0)
+                        ( t (unity-error-with-param
+                             "Invalid search-direction"
+                             search-direction
+                             "in unity-search-buffer"))))
+
+                 ((equal search-direction "descending")
+                  (cond ((equal higher-lower "higher")
+                         (length files))
+                        ((equal higher-lower "lower" )
+                         index)
+                        ( t (unity-error-with-param
+                             "Invalid search-direction"
+                             search-direction
+                             "in unity-search-buffer"))))
+                 (t (unity-error-with-param
+                     "Invalid search-direction"
+                     search-direction
+                     "in unity-search-buffer")))))
+
+      (let ((result (nth j files)))
+        
+        (while searching
+          (setq j
+                (cond ((equal search-direction "ascending")
+                       (+ j 1))
+                      ((equal search-direction "descending")
+                       (- j 1))
+                      (t (unity-error-with-param
+                          "Invalid search-direction"
+                          search-direction
+                          "in unity-search-buffer"))))
+          (setq result (nth j files))
+          (message (concat "index is "
+                           (number-to-string index) " j is "
+                           (number-to-string j)))
+          (if(and
+              (cond ((equal higher-lower "lower")
+                     (cond ((equal search-direction "ascending")
+                            (if (>= j index)
+                                (progn
+                                  (setq result t)
+                                  (setq searching nil)
+                                  nil)
+                              t))
+                           ((equal search-direction "descending")
+                            (if (<= j 0)
+                                (progn
+                                  (setq result nil)
+                                  (setq searching nil)
+                                  nil)
+                              t))
+                           (t (unity-error-with-param
+                               "Invalid search-direction"
+                               search-direction
+                               "in unity-search-buffer"))))
+                    
+                    ((equal higher-lower "higher")
+                     (cond ((equal search-direction "descending")
+                            (if (<= j index)
+                                (progn
+                                  (setq result t)
+                                  (setq searching nil)
+                                  nil)
+                              t))
+                           (t)t))
+                    (t (unity-error-with-param
+                        "Invalid search-direction"
+                        search-direction
+                        "in unity-search-buffer")))
+              
+              (if(not result)
+                  (progn
+                    (setq searching nil)
+                    nil)
+                t)
+              (not (file-directory-p result))
+              (not(string-match"^\\." result)))
+
+
+              (if(equal (file-name-extension result) ext)
+                  (progn
+                    (setq searching nil)
+                    (if(and(not test)
+                           result)
+                        (find-file
+                         (nth j files)))))))
+        result))))
 

@@ -903,4 +903,9 @@ task :default => [:clobber, 'test:all']\n\n"
   (should (equal "non-pattern-file" (unity-get-suffix-file-type "")))
   )
 
+(ert-deftest unity-get-extension-type-test ()
+  (should (equal "src-file" (unity-get-extension-type ".c")))
+  (should (equal "header-file" (unity-get-extension-type ".h")))
+  (should (equal "test-file" (unity-get-extension-type ".c")))
+  )
   

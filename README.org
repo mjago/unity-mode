@@ -3,7 +3,7 @@
 
 *** Minor mode for integration with Unity and friends
 
-[[http://throwtheswitch.org/][   Find out how to 'Throw The Switch' with Unity CMock and Ceedling here!]]
+    [[http://throwtheswitch.org/][   Find out how to 'Throw The Switch' with Unity CMock and Ceedling here!]]
 
   - In a nutshell...
     - Unity (stable) is a Unit-Test framework for the C language 
@@ -18,24 +18,27 @@
 *** Unity-Mode Features
 
  - This code is designed and tested with the help of [[http://www.emacswiki.org/emacs/ErtTestLibrary][ERT]] (unit-testing
-    library). The tests may be run by typing
+   library). The tests are run by 
 
-M-x ert 
+    M-x ert 
 
-  - DONE Auto Unity-Mode configuration 
+
+****  Auto Unity-Mode configuration 
+
     - display, paths, directories, rakefile.
-Enables rapid automated and intelligent configuration of project
-structure in terms of directory layout, config file
-generation, directory generation - all overrideable.
-This is done once at project birth and is initiated by typing 
 
-  M-x unity-setup
+      Enables rapid automated and intelligent configuration of project
+      structure in terms of directory layout, config file
+      generation, directory generation - all overrideable.
+      This is done once at project birth and is initiated by typing 
 
-  Settings can also be adjusted manually at any time using the Emacs
-  Customization front-end, or by modifying your project configuration
-  file (this is where all Unity Mode settings are kept, and are
-  therefore under revision-control for easy resumption of projects).
-  Of course unity-setup can be re-run at any time to modify the setup. 
+      M-x unity-setup
+
+      Settings can also be adjusted manually at any time using the Emacs
+      Customization front-end, or by modifying your project configuration
+      file (this is where all Unity Mode settings are kept, and are
+      therefore under revision-control for easy resumption of projects).
+      Of course unity-setup can be re-run at any time to modify the setup. 
 
 **** test - src - header fast single key/chord navigation cycling. 
 
@@ -47,8 +50,9 @@ This is done once at project birth and is initiated by typing
 
      C-; C-t
 
-**** Model-Conductor-Hardware, Presenter-First (or other) design-pattern fast-key navigation cycling. This enables
-     rapid navigation between pattern modules within the project (test
+**** Model-Conductor-Hardware, Presenter-First (or other) design-pattern fast-key navigation cycling. 
+
+     This enables rapid navigation between pattern modules within the project (test
      and source etc). The cycling is intelligent enough to ignore missing
      and unneeded modules etc. 
 
@@ -63,16 +67,56 @@ This is done once at project birth and is initiated by typing
 
      C-; C-m
 
-**** Fast enabling / disabling  of tests (the cursor simply needs to be
-     somewhere over the test in question. This can be mapped to a
-     single keystroke and is available out of the box with 
 
-     C-; C-i
+**** Alpha-File-Type fast-key navigation cycling (ascending). 
+
+     This enables rapid navigation between source files of the same
+     type (ie source, header, test etc) that are in the same directory
+     of the currently visited file. The files are cycled in ascending
+     alphabetical order and search wraps around automatically.
+
+     Configuration is part of the automated unity-setup but can be
+     altered at any point in time. 
+
+     Ideally this should be dedicated to a single chord/key for speed. I have it mapped to C-F5 with the following in my init file...
+
+     (global-set-key [f6] 'unity-cycle-alpha-ascending)
+
+     This is also available out of the box with...
+
+     C-; C-n (as in next)
+
+**** Alpha-File-Type fast-key navigation cycling (descending). 
+
+     As ascending but in descending alphabetical order.
+
+     Ideally this should be dedicated to the ascending cycling key
+     only shifted.
+
+     I have it mapped to S-f6 with the following in my init file...
+
+     (global-set-key [S-f6] 'unity-cycle-alpha-descending)
+
+     This is also available out of the box with...
+
+     C-; C-p (as in previous)
+
+**** Fast enabling / disabling  of tests 
+
+     Within a test file the cursor simply needs to be
+     somewhere over the test in question for this command to enable /
+     disable the test. 
+
+     The keystroke for this is... 
+     
+     C-; C-i (ignore)
 
 **** Key-map colour configuration.
 
-**** Other.
+**** Features to complete
 
+  - TODO Refactor for agnostic test-library use, agnostic project
+    design language
   - TODO Finish Auto Unity-Mode configuration file generation
     - project.org, project.yml
   - TODO Finish assertion snippets and internalise for non-ynippets people
