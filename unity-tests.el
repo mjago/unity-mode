@@ -1,16 +1,17 @@
 
 (provide 'unity-tests)
 
-(defvar unity-test-time '(19750 . 10)) ;;used for ert tests
-(defvar
-  unity-test-project-root
-  /home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/"
+(setq unity-tests-root  "~/.emacs.d/martyn/martyn/unity-mode/")
+(setq unity-test-project-root
+      (concat unity-tests-root
+              "ceedling/trunk/examples/temp_sensor/"))
+(setq unity-test-time '(19750 . 10)) ;;used for ert tests
 
-  (ert-deftest unity-check-prefix-test-p ()
-   (should (unity-check-prefix-p
-            "Testsomething.c" "test-file"))
+(ert-deftest unity-check-prefix-test-p ()
   (should (unity-check-prefix-p
-               "TestsomethingConductor.c" "test-file"))
+           "Testsomething.c" "test-file"))
+  (should (unity-check-prefix-p
+           "TestsomethingConductor.c" "test-file"))
   (should-not (unity-check-prefix-p
                "something.h" "test-file"))
   (should (unity-check-prefix-p
@@ -18,9 +19,9 @@
   (should (unity-check-prefix-p
            "testsomething.h" "src-file"))
   (should (unity-check-prefix-p
-               "Test_fileConductor.c" "test-file"))
+           "Test_fileConductor.c" "test-file"))
   (should (unity-check-prefix-p
-               "fileConductor.c" "src-file"))
+           "fileConductor.c" "src-file"))
   )
 
 (ert-deftest unit-check-suffix-p-test ()
@@ -235,50 +236,50 @@
 
 (ert-deftest unity-check-for-ceedling-directories-p-test ()
   (should (unity-check-for-ceedling-directories-p
-           "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"))
+           (concat unity-tests-root "ceedling/trunk/")))
   (should-not (unity-check-for-ceedling-directories-p
-               "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples"))
+               (concat unity-tests-root "ceedling/trunk/examples")))
   (should-not (unity-check-for-ceedling-directories-p "")))
 
 (ert-deftest unity-search-for-ceedling-root-by-presence-of-relevant-dirs-returns-correct-response ()
   (should (equal
-           "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
+           (concat unity-tests-root "ceedling/trunk/")
            (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
-            "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/")))
+            (concat unity-tests-root "ceedling/trunk/"))))
   (should (equal
-           "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
+           (concat unity-tests-root "ceedling/trunk/")
            (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
-            "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples")))
+            (concat unity-tests-root "ceedling/trunk/examples"))))
   (should-not (equal
-               "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
+               (concat unity-tests-root "ceedling/trunk/")
                (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
-                "~/.emacs.d/martyn/martyn/unity-mode/")))
+                unity-tests-root )))
   (should-not (equal
-               "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
+               (concat unity-tests-root "ceedling/trunk/")
                (unity-search-for-ceedling-root-by-presence-of-relevant-dirs
                 ""))))
 
 (ert-deftest unity-check-for-unity-root-relative-to-ceedling-p-test ()
   (should (unity-check-for-unity-root-relative-to-ceedling-p
-           "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"))
+           (concat unity-tests-root "ceedling/trunk/")))
   (should-not (unity-check-for-unity-root-relative-to-ceedling-p
-               "~/.emacs.d/martyn/martyn/unity-mode/ceedling/"))
+               (concat unity-tests-root "ceedling/")))
   (should-not (unity-check-for-unity-root-relative-to-ceedling-p
                "")))
 
 (ert-deftest unity-check-for-unity-root-relative-to-ceedling-p-test ()
   (should (unity-check-for-unity-root-relative-to-ceedling-p
-           "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"))
+           (concat unity-tests-root "ceedling/trunk/")))
   (should-not (unity-check-for-unity-root-relative-to-ceedling-p
-               "~/.emacs.d/martyn/martyn/unity-mode/ceedling/"))
+               (concat unity-tests-root "ceedling/")))
   (should-not (unity-check-for-unity-root-relative-to-ceedling-p
                "")))
 
 (ert-deftest unity-check-for-cmock-root-relative-to-ceedling-p-test ()
   (should (unity-check-for-cmock-root-relative-to-ceedling-p
-           "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"))
+           (concat unity-tests-root "ceedling/trunk/")))
   (should-not (unity-check-for-cmock-root-relative-to-ceedling-p
-               "~/.emacs.d/martyn/martyn/unity-mode/ceedling/"))
+               (concat unity-tests-root "ceedling/")))
   (should-not (unity-check-for-cmock-root-relative-to-ceedling-p
                "")))
 
@@ -287,7 +288,7 @@
 
 (ert-deftest unity-check-for-custom-plugins-relative-to-ceedling-p-test ()
   (should-not (unity-check-for-custom-plugins-relative-to-ceedling-p
-               "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"))
+               (concat unity-tests-root "ceedling/trunk/")))
   (should (unity-check-for-custom-plugins-relative-to-ceedling-p
            "~/ceedling5/trunk/")))
 
@@ -326,7 +327,7 @@ task :default => [:clobber, 'test:all']\n\n"
    (equal
     unity-test-project-root
     (unity-search-for-project-root-by-rakefile
-     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/test/TestAdcConductor.c")))
+     (concat unity-test-project-root "test/TestAdcConductor.c"))))
   (should
    (equal
     unity-test-project-root
@@ -335,29 +336,9 @@ task :default => [:clobber, 'test:all']\n\n"
      )))
   (should
    (equal
-    "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
+    (concat unity-tests-root "ceedling/trunk/")
     (unity-search-for-project-root-by-rakefile
-     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples")))
-  (should-not
-   (unity-search-for-project-root-by-rakefile "~/")))
-
-(ert-deftest unity-search-for-ceedling-root-by-project-yml-returns-correct-response ()
-  (should
-   (equal
-    unity-test-project-root
-    (unity-search-for-project-root-by-rakefile
-     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/test/TestAdcConductor.c")))
-  (should
-   (equal
-    unity-test-project-root
-    (unity-search-for-project-root-by-rakefile
-     unity-test-project-root
-     )))
-  (should
-   (equal
-    "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
-    (unity-search-for-project-root-by-rakefile
-     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples")))
+     (concat unity-tests-root "ceedling/trunk/examples"))))
   (should-not
    (unity-search-for-project-root-by-rakefile "~/")))
 
@@ -814,8 +795,7 @@ task :default => [:clobber, 'test:all']\n\n"
            t
            "AdcConductor.h" )))
   )
-
-(ert-deftest unity-cycle-MCH-buffer-test ()
+ (ert-deftest unity-cycle-MCH-buffer-test ()
   (should(equal
           "AdcConductor.c"
           (unity-cycle-MCH-buffer
@@ -832,11 +812,11 @@ task :default => [:clobber, 'test:all']\n\n"
            t
            "AdcConductor.c" )))
   (should(equal
-          "AdcConductor.c"
+          "AdcModel.c"
           (unity-cycle-MCH-buffer
            t
            "AdcHardware.c" )))
-  )
+ )
 
 (ert-deftest unity-cycle-alphabetic-group ()
   (should(equal
@@ -853,11 +833,12 @@ task :default => [:clobber, 'test:all']\n\n"
   (should (equal
            4
            (unity-index-current-buffer
-            "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcConductor.c" t)))
+            (concat unity-test-project-root
+                    "src/AdcConductor.c") t)))
   (should (equal
            6
            (unity-index-current-buffer
-            "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcHardware.c" t)))
+            (concat unity-test-project-root "src/AdcHardware.c") t)))
   )
 
 (ert-deftest unity-read-suffix-test ()
@@ -894,22 +875,53 @@ task :default => [:clobber, 'test:all']\n\n"
     "AdcHardware.c"
     (unity-search-buffer
      4
-     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcConductor.c"
+     (concat unity-test-project-root
+             "src/AdcConductor.c")
      "higher" "ascending" t)))
   (should
    (equal
     "AdcHardwareConfigurator.c"
     (unity-search-buffer
      6
-     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcHardware.c"
+     (concat unity-test-project-root
+             "src/AdcHardware.c")
      "higher" "ascending" t)))
   (should
    (equal
     "UsartTransmitBufferStatus.c"
     (unity-search-buffer
      6
-     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcConductor.c"
+     (concat unity-test-project-root
+             "src/AdcConductor.c")
      "higher" "descending" t)))
   )
 
+(defun unity-file-suffix1-list ()
+  `(,unity-model-file-suffix
+    ,unity-conductor-file-suffix
+    ,unity-hardware-file-suffix))
 
+;; (ert-deftest unity-test ()
+;;   (
+;;    '("123" . 123)
+;;    (  `(,unity-model-file-suffix
+;;         ,unity-conductor-file-suffix
+;;         ,unity-hardware-file-suffix))))
+
+;; (ert-deftest unity-cycle-convert-file-name-test()
+;;   (should (equal
+;;            (concat unity-test-project-root "src/nameConductor.c")
+;;                  (unity-cycle-convert-file-name
+;;                   (concat
+;;                    unity-test-project-root
+;;                    "nameModel.c")
+;;                   "model-to-conductor"
+;;                   "mch-type" t)))
+;;   )
+
+(ert-deftest unity-switch-mch-test ()
+  (should (unity-switch-mch "AdcConductor.c" "mch-type" t))
+  (should (unity-switch-mch "AdcHardware.c" "mch-type" t))
+  (should (unity-switch-mch "AdcModel.c" "mch-type" t))
+  (should (unity-switch-mch "AdcModel.h" "non-mch-type" t))
+  )

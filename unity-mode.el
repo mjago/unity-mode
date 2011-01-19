@@ -1,15 +1,14 @@
 ;;; unity-mode.el --- minor mode for Unity, CMock, and Ceedling
 ;; unit-testing, mocking, configuration integration.
 
+(require 'unity-custom-settings)
 (require 'unity-auto-config)
 (require 'unity-rakefile)
 
+;; Uncomment to allow self-test with ert...
+(require 'unity-tests)
+
 (defconst unity-enable-tests t)
-
-(if unity-enable-tests
-    (require 'unity-tests))
-
-    
 (defconst unity-mode-abbrev-table (make-abbrev-table))
 
 (defconst unity-mode-keymap
@@ -82,102 +81,6 @@
           (put-text-property
            0 6 'face '(foreground-color . "red") msg)
           msg)))
-
-(defcustom unity-rake-command "rake"
-  "The command for rake"
-  :type 'string
-  :group 'unity-mode)
-(defcustom unity-project-root-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-examples/temp_sensor/" "Project Root Directory"
-:type 'string
-:group 'unity-mode)
-(defcustom unity-ceedling-root-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
-  "Ceedling Root Directory"
-  :type 'string
-  :group 'unity-mode)
-(defcustom unity-unity-root-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-vendor/unity/" "Unity Root Directory"
-:type 'string
-:group 'unity-mode)
-(defcustom unity-cmock-root-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-vendor/cmock/" "CMock Root Directory"
-:type 'string
-:group 'unity-mode)
-(defcustom unity-plugins-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-plugins/" "Plugins Directory"
-:type 'string
-:group 'unity-mode)
-(defcustom unity-custom-plugins-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-custom_plugins/" "Custom Plugins Directory"
-:type 'string
-:group 'unity-mode)
-(defcustom unity-src-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-examples/temp_sensor/src/" "Source Directory"
-:type 'string
-:group 'unity-mode)
-(defcustom unity-test-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-examples/temp_sensor/test/" "Test Files Directory"
-:type 'string
-:group 'unity-mode)
-(defcustom unity-header-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-examples/temp_sensor/src/" "Header Files Directory"
-:type 'string
-:group 'unity-mode)
-(defcustom
-  unity-mocks-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-examples/temp_sensor/mocks" "Mock Files Directory"
-:type 'string
-:group 'unity-mode)
-(defcustom
-  unity-build-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-examples/temp_sensor/build/"
-  "Build Files Directory"
-  :type 'string
-  :group 'unity-mode)
-(defcustom unity-test-file-prefix "Test" "Test File Prefix"
-  :type 'string
-  :group 'unity-mode)
-(defcustom unity-mock-file-prefix "mock_" "Mock File Prefix"
-  :type 'string
-  :group 'unity-mode)
-(defcustom unity-model-file-suffix "Model"
-  "Model File Suffix (as in some[_model].c)"
-  :type 'string
-  :group 'unity-mode)
-(defcustom unity-conductor-file-suffix "Conductor"
-  (concat
-   "Conductor File Suffix (as in some[unity-conductor-file-suffix].c)")
-  :type 'string
-  :group 'unity-mode)
-(defcustom unity-hardware-file-suffix "Hardware"
-  (concat
-   "Hardware File Suffix (as in some[unity-hardware-file-suffix].c)")
-  :type 'string
-  :group 'unity-mode)
-(defcustom unity-configurator-file-suffix "Configurator"
-  (concat
-   "Configurator File Suffix (as in some[unity-configurator-file-suffix].c)")
-  :type 'string
-  :group 'unity-mode)
-(defcustom unity-src-file-extension ".c"
-  "C Source File Extension"
-  :type 'string
-  :group 'unity-mode)
-(defcustom unity-header-file-extension ".h"
-  "C Header File Extension" 
-  :type 'string
-  :group 'unity-mode)
 
 ;;;###autoload
 (define-minor-mode unity-mode
@@ -884,9 +787,7 @@ such as \"mch-type\"."
   (let (
         (temp-name
          (unity-convert-file-name 
-          file-name
-          switch-type
-          toggle-type)))
+          file-name switch-type toggle-type)))
 
     (if (unity-file-exists-p
          temp-name
@@ -997,154 +898,89 @@ such as \"mch-type\"."
             toggle-type
             "in unity-convert-file-name"))))
 
+(defun unity-switch-direction-list (file-name cycle-type)
+  (cond ((equal "mch-type" cycle-type)
+         (cond ((unity-is-model-file-p file-name)
+                (list "model-to-conductor" "model-to-hardware"))
+               ((unity-is-conductor-file-p file-name)
+                (list "conductor-to-hardware" "conductor-to-model"))
+               ((unity-is-hardware-file-p file-name)
+                (list "hardware-to-model" "hardware-to-conductor"))
+               ((unity-is-header-file-p file-name)
+                (list "header-to-src" "header-to-test"))))
+        ((equal "non-mch-type" cycle-type )
+         (cond ((unity-is-test-file-p file-name)
+                (list "test-to-src" "test-to-header"))
+               ((unity-is-src-file-p file-name)
+                (list "src-to-header" "src-to-test"))
+               ((unity-is-header-file-p file-name)
+                (list "header-to-test" "header-to-src"))))
+        (t ((unity-error-with-param
+             "Invalid cycle-type"
+             cycle-type
+             "in unity-switch-direction-list")))))
+
+(defun unity-switch-mch(file-name cycle-type &optional test)
+  (let ((temp nil)
+        (switch-direction-list
+         (unity-switch-direction-list file-name cycle-type)))
+    (mapcar (lambda (x)
+              (while(not temp)
+                (setq temp 
+                      (unity-switch-buffer
+                       file-name x cycle-type test))))
+            switch-direction-list)
+    (if(not temp)
+        (error "No matching pattern files found!"))
+    temp))
+
 (defun unity-cycle-test-src-header-buffer (&optional test test-file)
   "Toggle between test source file "
   (interactive)
-  (let ((return nil)
-        (file-name
-         (if(not test-file)
-             (file-name-nondirectory buffer-file-name)
-           test-file)))
-    
-    (cond ((unity-is-test-file-p file-name)
-           (if test
-               (setq return
-                     (unity-switch-buffer
-                      file-name
-                      "test-to-src"
-                      "non-mch-type" test))) ;passes true if test
-           (if(not
-               (unity-switch-buffer
-                file-name
-                "test-to-src"
-                "non-mch-type" test)) ;passes true if test
+  (unity-switch-mch
+   (unity-buffer-name-nondirectory-or-test-file test-file)
+   "non-mch-type" test-file))
 
-               (if(not
-                   (unity-switch-buffer
-                    file-name "test-to-header" "non-mch-type" test))
-                   (unity-error "No matching source or header file"))))
-          
-          ((unity-is-src-file-p file-name)
-           (if test
-               (setq return
-                     (unity-switch-buffer
-                      file-name
-                      "src-to-header"
-                      "non-mch-type" test))) ;passes true if test
-           (if(not
-               (unity-switch-buffer
-                file-name
-                "src-to-header"
-                "non-mch-type" test))
-               (if(not
-                   (unity-switch-buffer
-                    file-name
-                    "src-to-test"
-                    "non-mch-type"))
-                   (unity-error "No matching test or header file" test))))
-          
-          ((unity-is-header-file-p file-name)
-           (if test
-               (setq return
-                     (unity-switch-buffer
-                      file-name
-                      "header-to-test"
-                      "non-mch-type" test))) ;passes true if test
-           (if(not
-               (unity-switch-buffer
-                file-name
-                "header-to-test"
-                "non-mch-type"))
-               (if(not
-                   (unity-switch-buffer
-                    file-name
-                    "header-to-src"
-                    "non-mch-type"))
-                   (unity-error "No matching src or test file"))))
-          ( t (unity-error "File invalid")))
-    return))
+(defun unity-buffer-name-nondirectory-or-test-file (test-file)
+  (if(not test-file)
+      (file-name-nondirectory buffer-file-name)
+    test-file))
 
-(defun unity-cycle-MCH-buffer  (&optional test test-file)
-  "Cycle between model conductor and hardware buffers "
+(defun unity-cycle-check-prefix-destinations  (source &optional test test-file)
+  ""
   (interactive)
   (let ((return nil)
         (file-name
-         (if(not test-file)
-             (file-name-nondirectory buffer-file-name)
-           test-file)))
+         (unity-buffer-name-nondirectory-or-test-file test-file)))
 
-    (cond
-     ((unity-is-model-file-p file-name)
-      (if test
-          (setq return
-                (unity-switch-buffer
-                 file-name
-                 "model-to-conductor"
-                 "mch-type" test))) ;passes true if test
-      (if(not
-          (unity-switch-buffer
-           file-name
-           "model-to-conductor"
-           "mch-type"))
-          (if(not
-              (unity-switch-buffer
-               file-name
-               "model-to-hardware"
-               "mch-type"))
-              (unity-error "No matching conductor or hardware file"))))
-     
-     ((unity-is-conductor-file-p file-name)
-      (if test
-          (setq return
-                (unity-switch-buffer
-                 file-name
-                 "conductor-to-hardware"
-                 "mch-type" test))) ;passes true if test
-      (if(not
-          (unity-switch-buffer
-           file-name
-           "conductor-to-hardware"
-           "mch-type"))
-          (if(not
-              (unity-switch-buffer
-               file-name
-               "conductor-to-model"
-               "mch-type")
-              (unity-error "No matching hardware or model file")))))
-     
-     ((unity-is-hardware-file-p file-name)
-      (if test
-          (setq return
-                (unity-switch-buffer
-                 file-name
-                 "hardware-to-conductor"
-                 "mch-type" test))) ;passes true if test
-      (if(not
-          (unity-switch-buffer
-           file-name
-           "hardware-to-conductor"
-           "mch-type"))
-          (if(not
-              (unity-switch-buffer
-               file-name
-               "hardware-to-conductor"
-               "mch-type"))
-              (unity-error "No matching model or conductor file"))))
-     
-     ((unity-is-header-file-p file-name)
-      (if(not
-          (unity-switch-buffer
-           file-name
-           "header-to-src"
-           "non-mch-type"))
-          (if(not
-              (unity-switch-buffer
-               file-name
-               "header-to-test"
-               "non-mch-type"))
-              (unity-error "No matching file"))))
-     (t (unity-error "File invalid")))
-    return))
+    ((unity-is-model-file-p file-name)
+     (if test
+         (setq return
+               (unity-switch-buffer
+                file-name
+                "model-to-conductor"
+                "mch-type" test))) ;passes true if test
+     (if(not
+         (unity-switch-buffer
+          file-name
+          "model-to-conductor"
+          "mch-type"))
+         (if(not
+             (unity-switch-buffer
+              file-name
+              "model-to-hardware"
+              "mch-type"))
+             (unity-error "No matching conductor or hardware file"))))))
+
+(defun unity-cycle-MCH-buffer (&optional test test-file)
+  "Cycle between model conductor and hardware buffers "
+  (interactive)
+  (let ((file-name
+         (unity-buffer-name-nondirectory-or-test-file test-file)))
+    (if (unity-is-header-file-p file-name)
+      (setq file-name
+            (unity-switch-file-name file-name "header-to-src")))
+    (unity-switch-mch file-name "mch-type" test-file)))
 
 (defun unity-string-exact-match (regex string &optional start)
   (let ((case-fold-search nil)
