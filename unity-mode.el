@@ -3,8 +3,13 @@
 
 (require 'unity-auto-config)
 (require 'unity-rakefile)
-(require 'unity-tests)
 
+(defconst unity-enable-tests t)
+
+(if unity-enable-tests
+    (require 'unity-tests))
+
+    
 (defconst unity-mode-abbrev-table (make-abbrev-table))
 
 (defconst unity-mode-keymap
