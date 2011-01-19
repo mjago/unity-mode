@@ -2,8 +2,11 @@
 (provide 'unity-tests)
 
 (defvar unity-test-time '(19750 . 10)) ;;used for ert tests
+(defvar
+  unity-test-project-root
+  /home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/"
 
- (ert-deftest unity-check-prefix-test-p ()
+  (ert-deftest unity-check-prefix-test-p ()
    (should (unity-check-prefix-p
             "Testsomething.c" "test-file"))
   (should (unity-check-prefix-p
@@ -66,13 +69,13 @@
   )
 
 (ert-deftest unity-check-extension-p-test ()
-    (should  (unity-check-extension-p "name.h" "header-file"))
-    (should  (unity-check-extension-p "name.c""src-file"))
-    (should  (unity-check-extension-p "name.c" "test-file"))
-    (should  (unity-check-extension-p "name.c" "conductor-file"))
-    (should  (unity-check-extension-p "name.c" "hardware-file"))
-    (should  (unity-check-extension-p "name.c" "model-file"))
-)
+  (should  (unity-check-extension-p "name.h" "header-file"))
+  (should  (unity-check-extension-p "name.c""src-file"))
+  (should  (unity-check-extension-p "name.c" "test-file"))
+  (should  (unity-check-extension-p "name.c" "conductor-file"))
+  (should  (unity-check-extension-p "name.c" "hardware-file"))
+  (should  (unity-check-extension-p "name.c" "model-file"))
+  )
 
 (ert-deftest unity-is-file-type-p-tests ()
   (should (unity-is-file-type-p "Test_file.c" "test-file"))
@@ -82,7 +85,7 @@
   (should-not (unity-is-file-type-p "~/docs/Test_file.ccc" "test-file"))
   (should-not (unity-is-file-type-p "" "test-file"))
 
- (should (unity-is-file-type-p "Test_file.c" "src-file")) ;TODO!!
+  (should (unity-is-file-type-p "Test_file.c" "src-file")) ;TODO!!
   (should-not (unity-is-file-type-p "file.h" "src-file"))
   (should (unity-is-file-type-p "file.c" "src-file"))
   (should (unity-is-file-type-p "~/src/src/file.c" "src-file"))
@@ -92,8 +95,8 @@
   )
 
 (ert-deftest unity-is-src-file-p-returns-correct-result ()
- (should (unity-is-src-file-p "Test_file.c")) ;TODO is this what we want?
- (should (unity-is-src-file-p "fileConductor.c"))
+  (should (unity-is-src-file-p "Test_file.c")) ;TODO is this what we want?
+  (should (unity-is-src-file-p "fileConductor.c"))
   (should-not (unity-is-src-file-p "file.h")) 
   (should (unity-is-src-file-p "file.c"))
   (should (unity-is-src-file-p "~/src/src/file.c"))
@@ -321,14 +324,15 @@ task :default => [:clobber, 'test:all']\n\n"
 (ert-deftest unity-search-for-project-root-by-rakefile-returns-correct-response ()
   (should
    (equal
-    "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/"
+    unity-test-project-root
     (unity-search-for-project-root-by-rakefile
      "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/test/TestAdcConductor.c")))
   (should
    (equal
-    "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/"
+    unity-test-project-root
     (unity-search-for-project-root-by-rakefile
-     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/")))
+     unity-test-project-root
+     )))
   (should
    (equal
     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
@@ -340,14 +344,15 @@ task :default => [:clobber, 'test:all']\n\n"
 (ert-deftest unity-search-for-ceedling-root-by-project-yml-returns-correct-response ()
   (should
    (equal
-    "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/"
+    unity-test-project-root
     (unity-search-for-project-root-by-rakefile
      "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/test/TestAdcConductor.c")))
   (should
    (equal
-    "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/"
+    unity-test-project-root
     (unity-search-for-project-root-by-rakefile
-     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/")))
+     unity-test-project-root
+     )))
   (should
    (equal
     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
@@ -467,7 +472,7 @@ task :default => [:clobber, 'test:all']\n\n"
   (should (equal "AdcConductor.c"
                  (unity-switch-buffer
                   "AdcModel.c" "model-to-conductor" "mch-type" t)))
-)
+  )
 (ert-deftest unity-switch-buffer-with-switch-type-model-to-hardware ()
   (should (equal "AdcHardware.c"
                  (unity-switch-buffer
@@ -493,10 +498,10 @@ task :default => [:clobber, 'test:all']\n\n"
                  (unity-switch-buffer
                   "AdcHardware.c" "hardware-to-conductor" "mch-type" t))))
 
- (ert-deftest unity-switch-buffer-with-test-file-type-and-switch-type-hardware-to-conductor ()
-   (should (equal "TestAdcConductor.c"
-                  (unity-switch-buffer
-                   "TestAdcHardware.c" "hardware-to-conductor" "mch-type" t))))
+(ert-deftest unity-switch-buffer-with-test-file-type-and-switch-type-hardware-to-conductor ()
+  (should (equal "TestAdcConductor.c"
+                 (unity-switch-buffer
+                  "TestAdcHardware.c" "hardware-to-conductor" "mch-type" t))))
 
 (ert-deftest unity-switch-buffer-with-header-and-switch-type-hardware-to-conductor ()
   (should (equal "AdcConductor.c"
@@ -671,28 +676,28 @@ task :default => [:clobber, 'test:all']\n\n"
 (ert-deftest unity-file-suffix-list-test ()
   (should (equal '("Model" "Conductor" "Hardware") (unity-file-suffix-list))))
 
- (ert-deftest unity-strip-affix-test ()
-   (should (equal "name.c" (unity-strip-affix "Testname.c" "prefix-type")))
-   (should (equal "Testname.c" (unity-strip-affix "Testname.c" "suffix-type")))
-   (should (equal "Testname.c" (unity-strip-affix "Testname.c" "suffix-type")))
-   (should (equal "name.c" (unity-strip-affix "Testname.c" "prefix-type")))
-   )
+(ert-deftest unity-strip-affix-test ()
+  (should (equal "name.c" (unity-strip-affix "Testname.c" "prefix-type")))
+  (should (equal "Testname.c" (unity-strip-affix "Testname.c" "suffix-type")))
+  (should (equal "Testname.c" (unity-strip-affix "Testname.c" "suffix-type")))
+  (should (equal "name.c" (unity-strip-affix "Testname.c" "prefix-type")))
+  )
 
-  ;; (should (equal "" (unity-read-attribute "name" "header-type")))
-  ;; (should (equal ".h" (unity-read-attribute "name.h" "header-type")))
-  ;; (should(not(equal nil (unity-read-attribute "" "header-type"))))
+;; (should (equal "" (unity-read-attribute "name" "header-type")))
+;; (should (equal ".h" (unity-read-attribute "name.h" "header-type")))
+;; (should(not(equal nil (unity-read-attribute "" "header-type"))))
 
 
- ;  (should-not (equal '("test") (unity-file-prefix-list))))
+                                        ;  (should-not (equal '("test") (unity-file-prefix-list))))
 
 (ert-deftest unity-file-extension-test ()
   (should (equal ".c" (unity-file-extension "test-file")))
   (should (equal ".c" (unity-file-extension "src-file")))
   (should (equal ".h" (unity-file-extension "header-file"))))
 
- (ert-deftest unity-read-name-test ()
-   (should (equal "name" (unity-read-name "Testname.c")))
-   (should (equal "testname" (unity-read-name "testname.h"))))
+(ert-deftest unity-read-name-test ()
+  (should (equal "name" (unity-read-name "Testname.c")))
+  (should (equal "testname" (unity-read-name "testname.h"))))
 
 (ert-deftest unity-original-replace-regexp-in-string-tests ()
   ;;FAILS...
@@ -789,7 +794,7 @@ task :default => [:clobber, 'test:all']\n\n"
                                         "suffix-type"))))
 
 (ert-deftest unity-read-prefix-test ()
-    (should (equal "Test" (unity-read-prefix "TestSomeNameConductor.c")))
+  (should (equal "Test" (unity-read-prefix "TestSomeNameConductor.c")))
   )
 
 (ert-deftest unity-cycle-test-src-header-buffer-test ()
@@ -848,32 +853,12 @@ task :default => [:clobber, 'test:all']\n\n"
   (should (equal
            4
            (unity-index-current-buffer
-            t
-            "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcConductor.c" )))
+            "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcConductor.c" t)))
   (should (equal
            6
            (unity-index-current-buffer
-            t
-            "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcHardware.c" )))
+            "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcHardware.c" t)))
   )
-
-(ert-deftest unity-search-high-end-buffer-test ()
-     (should
-      (equal
-       "TimerConductor.c"
-       (unity-search-high-end-buffer
-        4
-        t
-        "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcConductor.c")))
-     (should
-      (equal
-       "AdcModel.c"
-       (unity-search-high-end-buffer
-        6
-        t
-        "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcHardware.c")))
-
-     )
 
 (ert-deftest unity-read-suffix-test ()
   (should (equal
@@ -903,9 +888,28 @@ task :default => [:clobber, 'test:all']\n\n"
   (should (equal "non-pattern-file" (unity-get-suffix-file-type "")))
   )
 
-(ert-deftest unity-get-extension-type-test ()
-  (should (equal "src-file" (unity-get-extension-type ".c")))
-  (should (equal "header-file" (unity-get-extension-type ".h")))
-  (should (equal "test-file" (unity-get-extension-type ".c")))
+(ert-deftest unity-search-buffer-test ()
+  (should
+   (equal
+    "AdcHardware.c"
+    (unity-search-buffer
+     4
+     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcConductor.c"
+     "higher" "ascending" t)))
+  (should
+   (equal
+    "AdcHardwareConfigurator.c"
+    (unity-search-buffer
+     6
+     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcHardware.c"
+     "higher" "ascending" t)))
+  (should
+   (equal
+    "UsartTransmitBufferStatus.c"
+    (unity-search-buffer
+     6
+     "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/examples/temp_sensor/src/AdcConductor.c"
+     "higher" "descending" t)))
   )
-  
+
+

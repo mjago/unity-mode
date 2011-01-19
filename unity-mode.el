@@ -1151,11 +1151,6 @@ such as \"mch-type\"."
           t
         nil))))
 
-;; (defun unity-cut-extension (filename)
-;;   (let ((extension
-;;          (file-name-extension filename)))
-;;     (if extension
-
 (defun unity-read-extension (file-name)
   (let ((ext nil))
     (setq ext (file-name-extension file-name))
@@ -1269,25 +1264,26 @@ ATTRIB-TYPE attribute type (string)
                "in unity-cycle-alphabetic-group")))))
 
 (defun unity-index-current-buffer(file-name &optional test)
-  (if(not buffer-file-name)
-      (unity-error "File must exist on disk - please save first")
-    (let ((files 
-           (directory-files 
-            (file-name-directory
-             file-name)))
-          (j 0)
-          (searching t)
-          (result nil))
-      (while searching
-        (setq j (+ 1 j))
-        (setq result (nth j files))
-        (if(or(equal result (file-name-nondirectory file-name))
-              (equal nil result))
-            (setq searching nil)))
-      (if(not result)
-          (setq j nil))
-      (message (number-to-string j))
-      j)))
+  (if(or
+      test
+      (buffer-file-name))
+      (let ((files 
+             (directory-files 
+              (file-name-directory
+               file-name)))
+            (j 0)
+            (searching t)
+            (result nil))
+        (while searching
+          (setq j (+ 1 j))
+          (setq result (nth j files))
+          (if(or(equal result (file-name-nondirectory file-name))
+                (equal nil result))
+              (setq searching nil)))
+        (if(not result)
+            (setq j nil))
+        j)
+    (unity-error "File must exist on disk - please save first")))
 
 (defun unity-search-buffer
   (index file-name higher-lower search-direction  &optional test)
@@ -1336,9 +1332,6 @@ ATTRIB-TYPE attribute type (string)
                           search-direction
                           "in unity-search-buffer"))))
           (setq result (nth j files))
-          (message (concat "index is "
-                           (number-to-string index) " j is "
-                           (number-to-string j)))
           (if(and
               (cond ((equal higher-lower "lower")
                      (cond ((equal search-direction "ascending")
@@ -1382,14 +1375,15 @@ ATTRIB-TYPE attribute type (string)
               (not (file-directory-p result))
               (not(string-match"^\\." result)))
 
-
               (if(equal (file-name-extension result) ext)
                   (progn
+                    (message (concat "Switching to "
+                                     result))
                     (setq searching nil)
                     (if(and(not test)
                            result)
                         (find-file
-                         (nth j files)))))))
+                         result))))))
         result))))
 
 
