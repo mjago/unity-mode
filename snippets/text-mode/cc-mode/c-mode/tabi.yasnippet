@@ -1,0 +1,7 @@
+#name : TEST_ASSERT_BITS(mask, expected, actual)
+#contributor : Martyn Jago
+#Use an integer mask to specify which bits should be compared 
+#between two other integers.  High bits in the mask are compared, 
+#low bits ignored.
+# --
+TEST_ASSERT_BITS(${1: mask}, ${2: expected}, ${3: actual});$0

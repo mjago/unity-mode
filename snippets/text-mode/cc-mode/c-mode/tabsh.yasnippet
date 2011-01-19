@@ -1,0 +1,7 @@
+#name : TEST_ASSERT_BITS_HIGH(bit, actual)
+#contributor : Martyn Jago
+#Use an integer mask to specify which bits should be 
+#inspected to determine if they are all set high.  
+#High bits in the mask are compared, low bits ignored.
+# --
+TEST_ASSERT_BITS_HIGH(${1: mask}, ${2:actual});$0

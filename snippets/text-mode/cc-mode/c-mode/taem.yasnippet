@@ -1,0 +1,10 @@
+#name : TEST_ASSERT_EQUAL_MEMORY(expected, actual, length)
+#contributor : Martyn Jago
+#Compare two blocks of memory.  
+#This is a good generic assertion for types 
+#that can't be coerced into acting like
+#standard types... but since it's a memory 
+#compare, you have to be careful that your 
+#data types are packed.
+# --
+TEST_ASSERT_EQUAL_MEMORY(${1: expected} ,${2: actual} ,${3: length});$0

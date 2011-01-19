@@ -1,0 +1,8 @@
+#name : TEST_ASSERT_EQUAL_STRING_MESSAGE(expected, actual, message)
+#contributor : Martyn Jago
+#Compare two null-terminate strings.  
+#Fail if any character is different or 
+#if the lengths are different. 
+#Output a custom message on failure.
+# --
+TEST_ASSERT_EQUAL_STRING_MESSAGE(${1: expected}, ${2:actual}, ${3:message});$0
