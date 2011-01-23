@@ -5,6 +5,7 @@
 (require 'unity-auto-config)
 (require 'unity-rakefile)
 
+
 ;; Uncomment to allow self-test with ert...
 (require 'unity-tests)
 
@@ -12,6 +13,7 @@
 (defconst unity-mode-abbrev-table (make-abbrev-table))
 
 (defconst unity-mode-keymap
+  
   (make-sparse-keymap) "Keymap used in unity mode")
 
 (define-key unity-mode-keymap
@@ -33,6 +35,29 @@
   (kbd "C-; a") 'unity-test-all)
 (define-key unity-mode-keymap
   (kbd "C-; d") 'unity-test-delta)
+
+(setq unity-temp-sensor-project-list
+      ;; order patterns                    path
+      '((0     '("Conductor" "_conductor") unity-src-dir)
+        (1     '("Model" "_model")         unity-src-dir)
+        (2     '("Hardware" "_hardware")   unity-src-dir)
+        (3     '("Other" "_other")         unity-src-dir)
+        (4     '("Interrupt" "_interrupt") unity-src-dir)))
+
+(setq unity-dev-project-list
+      ;; order patterns                    path
+      '((0     '("Conductor" "_conductor") unity-src-dir)
+        (1     '("Model" "_model")         unity-src-dir)
+        (2     '("Hardware" "_hardware")   unity-src-dir)
+        (3     '("Other" "_other")         unity-src-dir)
+        (4     '("Interrupt" "_interrupt") unity-src-dir)))
+
+(setq unity-suffix-4 
+      '((pattern-0  '("Configurator" "_configurator"))
+        (pattern-1  '("Sensor" "_sensor"))
+        (pattern-2  '("Handler" "_handler"))
+        (pattern-3  '("Wrapper" "_wrapper"))
+        (pattern-F  '())))
 
 (defvar unity-mode-map nil) ; No local map
 (setq unity-mode-results-map (make-sparse-keymap))
@@ -166,6 +191,18 @@ Unit testing integration"
     ,unity-conductor-file-suffix
     ,unity-hardware-file-suffix))
 
+(defun unity-get-suffix (file-type)
+  (cond ((equal "conductor-type" file-type)
+         unity-conductor-file-suffix)
+        ((equal "model-type" file-type)
+         unity-model-file-suffix)
+        ((equal "hardware-type" file-type)
+         unity-hardware-file-suffix)
+        ( t  (unity-error-with-param
+              "Invalid file-type"
+              file-type
+              "in unity-get-suffix"))))
+
 (defun unity-file-extension (file-type)
   (cond ((equal file-type "header-file")
          unity-header-file-extension)
@@ -293,8 +330,6 @@ Unit testing integration"
       (unity-check-prefix-p file-name "test-file")
     nil))
 
-;;  (unity-is-file-type-p file-name "test-file"))
-
 (defun unity-is-src-file-p (file-name)
   "Returns t if filename has a C extension and is not a testfile"
                                         ;  (dbg (unity-check-prefix-p file-name "src-file"));
@@ -348,6 +383,17 @@ Unit testing integration"
    (concat
     "^.*"
     unity-model-file-suffix
+    "\\"
+    unity-src-file-extension
+    "$")
+   (file-name-nondirectory file-name)))
+
+(defun unity-is-pattern-file-p (file-name pattern-match)
+  "Returns true if FILE-NAME is a file of FILE-TYPE."
+  (unity-string-exact-match
+   (concat
+    "^.*"
+    pattern-match
     "\\"
     unity-src-file-extension
     "$")
@@ -676,7 +722,6 @@ examples/temp_sensor/rakefile.rb" ))
   (put-text-property
    0 (length msg) 'face `(foreground-color .,colour) msg) msg)
 
-
 (defun unity-find-root-dir (&optional reference-file)
   (if (unity-is-code-file-p reference-file)
       (unity-search-for-project-root-by-rakefile
@@ -756,7 +801,7 @@ such as \"mch-type\"."
      file-type
      toggle-type)
     file-name)))
-
+   
 (defun unity-dest-file-type (switch-type)
   (concat
    (unity-replace-regex-in-string "^.*-" "" switch-type)
@@ -898,49 +943,6 @@ such as \"mch-type\"."
             toggle-type
             "in unity-convert-file-name"))))
 
-(defun unity-switch-direction-list (file-name cycle-type)
-  (cond ((equal "mch-type" cycle-type)
-         (cond ((unity-is-model-file-p file-name)
-                (list "model-to-conductor" "model-to-hardware"))
-               ((unity-is-conductor-file-p file-name)
-                (list "conductor-to-hardware" "conductor-to-model"))
-               ((unity-is-hardware-file-p file-name)
-                (list "hardware-to-model" "hardware-to-conductor"))
-               ((unity-is-header-file-p file-name)
-                (list "header-to-src" "header-to-test"))))
-        ((equal "non-mch-type" cycle-type )
-         (cond ((unity-is-test-file-p file-name)
-                (list "test-to-src" "test-to-header"))
-               ((unity-is-src-file-p file-name)
-                (list "src-to-header" "src-to-test"))
-               ((unity-is-header-file-p file-name)
-                (list "header-to-test" "header-to-src"))))
-        (t ((unity-error-with-param
-             "Invalid cycle-type"
-             cycle-type
-             "in unity-switch-direction-list")))))
-
-(defun unity-switch-mch(file-name cycle-type &optional test)
-  (let ((temp nil)
-        (switch-direction-list
-         (unity-switch-direction-list file-name cycle-type)))
-    (mapcar (lambda (x)
-              (while(not temp)
-                (setq temp 
-                      (unity-switch-buffer
-                       file-name x cycle-type test))))
-            switch-direction-list)
-    (if(not temp)
-        (error "No matching pattern files found!"))
-    temp))
-
-(defun unity-cycle-test-src-header-buffer (&optional test test-file)
-  "Toggle between test source file "
-  (interactive)
-  (unity-switch-mch
-   (unity-buffer-name-nondirectory-or-test-file test-file)
-   "non-mch-type" test-file))
-
 (defun unity-buffer-name-nondirectory-or-test-file (test-file)
   (if(not test-file)
       (file-name-nondirectory buffer-file-name)
@@ -971,16 +973,6 @@ such as \"mch-type\"."
               "model-to-hardware"
               "mch-type"))
              (unity-error "No matching conductor or hardware file"))))))
-
-(defun unity-cycle-MCH-buffer (&optional test test-file)
-  "Cycle between model conductor and hardware buffers "
-  (interactive)
-  (let ((file-name
-         (unity-buffer-name-nondirectory-or-test-file test-file)))
-    (if (unity-is-header-file-p file-name)
-      (setq file-name
-            (unity-switch-file-name file-name "header-to-src")))
-    (unity-switch-mch file-name "mch-type" test-file)))
 
 (defun unity-string-exact-match (regex string &optional start)
   (let ((case-fold-search nil)
@@ -1076,34 +1068,6 @@ ATTRIB-TYPE attribute type (string)
             (unity-file-suffix-list))
     suffix))
 
-(defun unity-cycle-alpha-ascending ()
-  (interactive)
-  (unity-cycle-alphabetic-group buffer-file-name "ascending")
-  )
-
-(defun unity-cycle-alpha-descending ()
-  (interactive)
-  (unity-cycle-alphabetic-group buffer-file-name "descending")
-  )
-
-(defun unity-cycle-alphabetic-group (file-name search-direction &optional test test-file)
-  "Cycle between files alphabetically contained within current buffer directory."
-  
-  (let ((idx
-         (unity-index-current-buffer file-name)))
-    (cond ((equal search-direction "ascending")
-           (if(not
-               (unity-search-buffer idx file-name "higher" search-direction))
-               (unity-search-buffer idx file-name "lower" search-direction)))
-          ((equal search-direction "descending")
-           (if(not
-               (unity-search-buffer idx file-name "lower" search-direction))
-               (unity-search-buffer idx file-name "higher" search-direction)))
-          ( t (unity-error-with-param
-               "Invalid search-direction"
-               search-direction
-               "in unity-cycle-alphabetic-group")))))
-
 (defun unity-index-current-buffer(file-name &optional test)
   (if(or
       test
@@ -1126,6 +1090,122 @@ ATTRIB-TYPE attribute type (string)
         j)
     (unity-error "File must exist on disk - please save first")))
 
+(defun unity-new-switch-direction-list (file-name cycle-type)
+  ) 
+
+(defun unity-switch-direction-list (file-name cycle-type)
+  (cond ((equal "mch-type" cycle-type)
+         (cond ((unity-is-model-file-p file-name)
+                (list "model-to-conductor" "model-to-hardware"))
+               ((unity-is-conductor-file-p file-name)
+                (list "conductor-to-hardware" "conductor-to-model"))
+               ((unity-is-hardware-file-p file-name)
+                (list "hardware-to-model" "hardware-to-conductor"))
+               ((unity-is-header-file-p file-name)
+                (list "header-to-src" "header-to-test"))))
+        ((equal "non-mch-type" cycle-type )
+         (cond ((unity-is-test-file-p file-name)
+                (list "test-to-src" "test-to-header"))
+               ((unity-is-src-file-p file-name)
+                (list "src-to-header" "src-to-test"))
+               ((unity-is-header-file-p file-name)
+                (list "header-to-test" "header-to-src"))))
+        (t ((unity-error-with-param
+             "Invalid cycle-type"
+             cycle-type
+             "in unity-switch-direction-list")))))
+
+(defun unity-find-and-switch-buffer (file-name cycle-type &optional test)
+  (let ((temp nil)
+        (switch-direction-list
+         (unity-switch-direction-list file-name cycle-type)))
+    (mapcar (lambda (x)
+              (while(not temp)
+                (setq temp 
+                      (unity-switch-buffer
+                       file-name x cycle-type test))))
+            switch-direction-list)
+    (if(not temp)
+        (error "No matching pattern files found!"))
+    temp))
+
+(defun unity-cycle-test-src-header-buffer (&optional test test-file)
+  "Toggle between test source file "
+  (interactive)
+  (unity-find-and-switch-buffer
+   (unity-buffer-name-nondirectory-or-test-file test-file)
+   "non-mch-type" test-file))
+
+(defun unity-cycle-MCH-buffer (&optional test-file)
+  "Cycle between model conductor and hardware buffers "
+  (interactive)
+  (let ((file-name
+         (unity-buffer-name-nondirectory-or-test-file test-file)))
+    (if (unity-is-header-file-p file-name)
+        (setq file-name
+              (unity-switch-file-name file-name "header-to-src")))
+    
+    (unity-new-find-and-switch-buffer file-name
+                                      unity-temp-sensor-project-list test-file)))
+
+;;    (unity-find-and-switch-buffer
+;;     file-name "mch-type" test-file)))
+
+(defun unity-cycle-alpha-ascending ()
+  (interactive)
+  (unity-cycle-alphabetic-group buffer-file-name "ascending")
+  )
+
+(defun unity-cycle-alpha-descending ()
+  (interactive)
+  (unity-cycle-alphabetic-group buffer-file-name "descending")
+  )
+
+(defun unity-cycle-alphabetic-group
+  (file-name search-direction &optional test test-file)
+  "Cycle between files alphabetically contained
+   within current buffer directory."
+  
+  (let ((idx
+         (unity-index-current-buffer file-name)))
+    (cond ((equal search-direction "ascending")
+           (if(not
+               (unity-search-buffer idx file-name "higher" search-direction))
+               (unity-search-buffer idx file-name "lower" search-direction)))
+          ((equal search-direction "descending")
+           (if(not
+               (unity-search-buffer idx file-name "lower" search-direction))
+               (unity-search-buffer idx file-name "higher" search-direction)))
+          ( t (unity-error-with-param
+               "Invalid search-direction"
+               search-direction
+               "in unity-cycle-alphabetic-group")))))
+
+(defun unity-alpha-start-index (search-direction higher-lower index)
+  (cond ((equal search-direction "ascending")
+         (cond ((equal higher-lower "higher")
+                index)
+               ((equal higher-lower "lower" )
+                0)
+               ( t (unity-error-with-param
+                    "Invalid search-direction"
+                    search-direction
+                    "in unity-search-buffer"))))
+
+        ((equal search-direction "descending")
+         (cond ((equal higher-lower "higher") 
+                (length files))
+               ((equal higher-lower "lower" )
+                index)
+               ( t (unity-error-with-param
+                    "Invalid search-direction"
+                    search-direction
+                    "in unity-get-index-limit"))))
+        (t (unity-error-with-param
+            "Invalid search-direction"
+            search-direction
+            "in unity-get-index-limit"))))
+
 (defun unity-search-buffer
   (index file-name higher-lower search-direction  &optional test)
 
@@ -1135,30 +1215,8 @@ ATTRIB-TYPE attribute type (string)
         (ext (file-name-extension file-name))
         (searching t))
 
-    (let ((j
-           (cond ((equal search-direction "ascending")
-                  (cond ((equal higher-lower "higher")
-                         index)
-                        ((equal higher-lower "lower" )
-                         0)
-                        ( t (unity-error-with-param
-                             "Invalid search-direction"
-                             search-direction
-                             "in unity-search-buffer"))))
-
-                 ((equal search-direction "descending")
-                  (cond ((equal higher-lower "higher")
-                         (length files))
-                        ((equal higher-lower "lower" )
-                         index)
-                        ( t (unity-error-with-param
-                             "Invalid search-direction"
-                             search-direction
-                             "in unity-search-buffer"))))
-                 (t (unity-error-with-param
-                     "Invalid search-direction"
-                     search-direction
-                     "in unity-search-buffer")))))
+    (let ((j (unity-alpha-start-index
+              search-direction higher-lower index)))
 
       (let ((result (nth j files)))
         
@@ -1227,7 +1285,169 @@ ATTRIB-TYPE attribute type (string)
                          result))))))
         result))))
 
+(defun unity-get-list(index pattern)
+  "Returns list present at this INDEX of
+this PATTERN"
+  (car(last(car(cdr(assoc index pattern))))))
 
-(add-hook 'c-mode-hook 'unity-mode)
+(defun unity-is-valid-pattern-p (index pattern)
+  "Returns true if INDEX indicates a valid pattern
+list in PATTERN"
+  (if (unity-get-list index pattern) t nil))
+
+(defun unity-try-pattern-option(index option pattern)
+  "Returns pattern option found at this index or nil
+if none found"
+  (nth option (unity-get-list index pattern)))
+
+(defun unity-get-current-pattern-index (match pattern)
+  "Returns index of current file-string pattern if
+it is a pattern file, else nil
+MATCH is the pattern as string to match with
+PATTERN is the pattern to use"
+  (let ((i 0)
+        (list nil)
+        (finished nil)
+        (suggestion nil)
+        (option-count 0))
+    (while(not finished)
+      (setq suggestion (unity-try-pattern-option i option-count pattern))
+      (if suggestion
+          (if(equal suggestion match)
+              (setq finished t)
+            (setq option-count (+ option-count 1)))
+        (progn ;suggestion == nil
+          (setq i (+ i 1)) ; next list
+          (if (unity-is-valid-pattern-p i pattern) ;valid list?
+              (setq option-count 0)
+            (setq finished t))))) 
+    (if suggestion i nil)))
+
+(defun unity-extract-pattern-index-from-file-name (file-name pattern-list)
+  "Returns index of current file-string pattern if
+it is a pattern file, else nil
+MATCH is the pattern as string to match with
+PATTERN is the pattern to use"
+  (let ((i 0)
+        (list nil)
+        (finished nil)
+        (suggestion nil)
+        (option-count 0))
+    (while(not finished)
+      (setq suggestion (unity-try-pattern-option i option-count pattern-list))
+      (if suggestion
+          (if (unity-is-pattern-in-file-name-p file-name suggestion)
+              (setq finished t)
+            (setq option-count (+ option-count 1)))
+        (progn ;suggestion == nil
+          (setq i (+ i 1)) ; next list
+          (if (unity-is-valid-pattern-p i pattern-list) ;valid list?
+              (setq option-count 0)
+            (setq finished t))))) 
+    (if suggestion i nil)))
+
+(defun unity-is-pattern-in-file-name-p (file-name pattern)
+  (unity-string-exact-match
+   (concat
+    "^.*"
+    pattern
+    "\\"
+    unity-src-file-extension
+    "$")
+   (file-name-nondirectory file-name)))
+
+(defun unity-get-target-dir(file-name)
+  (if (unity-is-test-file-p file-name)
+      unity-test-dir
+    unity-src-dir))
+                            
+(defun unity-new-find-and-switch-buffer (file-name patterns &optional test)
+  (let ((current-index
+         (unity-extract-pattern-index-from-file-name file-name unity-temp-sensor-project-list))
+        (finished nil) 
+        (return-index t)
+        (upper-search t))
+    (let ((current-pattern
+           (unity-read-pattern-in-file-name
+            file-name
+            current-index
+            patterns)))
+      (let ((name
+             (unity-new-read-name
+              file-name
+              current-pattern)))
+        (let ((i (+ 1 current-index))
+              (option-count 0))
+          (while(not finished) 
+            (if(not (unity-is-valid-pattern-p i patterns))
+                (progn
+                  (setq upper-search nil)
+                  (setq i 0))
+
+              (let ((new-pattern
+                     (unity-try-pattern-option
+                      i
+                      option-count
+                      patterns)))
+                (if new-pattern
+                    (let ((new-name
+                           (unity-build-pattern-file-name
+                            file-name
+                            current-pattern
+                            new-pattern)))
+                      (let ((file-with-path
+                             (concat (unity-get-target-dir
+                                      new-name)
+                                     new-name))) 
+                        (if (file-exists-p file-with-path)
+                            (progn
+                              (setq finished t)
+                              (if (not test)
+                                  (find-file file-with-path)
+                                (setq file-name new-name))))
+                        (setq option-count (+ 1 option-count))))
+                  (progn
+                    (setq option-count 0)
+                    (setq i (+ i 1))
+                    (if (not upper-search)
+                        (if (>= i current-index)
+                            (progn
+                              (setq file-name nil)
+                              (setq finished t)))))))))))))
+  file-name)
+
+(defun unity-build-pattern-file-name (file-name old-pattern new-pattern)
+          (let ((ext (file-name-extension file-name)))
+            (let ((file-name
+                   (unity-replace-regex-in-string
+                    (concat old-pattern "$")
+                    new-pattern
+                    (file-name-sans-extension file-name))))
+              (concat file-name "." ext))))
+
+(defun unity-new-read-name (file-name pattern)
+          (unity-replace-regex-in-string
+           (concat pattern "$")
+           ""
+           (file-name-sans-extension file-name)))
+
+(defun unity-read-pattern-in-file-name (file-name index pattern-list)
+          (let ((i 0)
+                (finished nil)
+                (pattern nil))
+            (while(not finished)
+              (setq pattern
+                    (unity-try-pattern-option index i pattern-list))
+              (if(or
+                  (not pattern)
+                  (unity-is-pattern-in-file-name-p file-name pattern))
+                  (setq finished t)
+                (setq i (+ i 1))))
+            pattern))
+
 (provide 'unity-mode)
-
+;; ; (add-hook 'after-save-hook 'unity-eval-src-and-tests)
+ 
+;; test 1 
+;; test 2
+;; test 3

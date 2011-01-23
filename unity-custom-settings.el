@@ -1,63 +1,61 @@
-
 (defcustom unity-rake-command "rake"
   "The command for rake"
   :type 'string
   :group 'unity-mode)
 (defcustom unity-project-root-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-examples/temp_sensor/" "Project Root Directory"
+  "./ceedling/trun/examples/temp_sensor/"
+  "Project Root Directory"
 :type 'string
 :group 'unity-mode)
 (defcustom unity-ceedling-root-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
+  (concat unity-project-root-dir "./ceedling/trunk/")
   "Ceedling Root Directory"
   :type 'string
   :group 'unity-mode)
 (defcustom unity-unity-root-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-vendor/unity/" "Unity Root Directory"
+  (concat unity-ceedling-root-dir "vendor/unity/")
+          "Unity Root Directory"
 :type 'string
 :group 'unity-mode)
 (defcustom unity-cmock-root-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-vendor/cmock/" "CMock Root Directory"
+  (concat unity-ceedling-root-dir "vendor/cmock/")
+  "CMock Root Directory"
 :type 'string
 :group 'unity-mode)
 (defcustom unity-plugins-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-plugins/" "Plugins Directory"
+  (concat unity-ceedling-root-dir "plugins/")
+          "Plugins Directory"
 :type 'string
 :group 'unity-mode)
 (defcustom unity-custom-plugins-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-custom_plugins/" "Custom Plugins Directory"
+  (concat unity-ceedling-root-dir "custom-plugins/")
+  "Custom Plugins Directory"
 :type 'string
 :group 'unity-mode)
 (defcustom unity-src-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-examples/temp_sensor/src/" "Source Directory"
+  (concat unity-project-root-dir "src/")
+          "Source Directory"
 :type 'string
 :group 'unity-mode)
 (defcustom unity-test-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-examples/temp_sensor/test/" "Test Files Directory"
+  (concat unity-project-root-dir "test/")
+  "Test Files Directory"
 :type 'string
 :group 'unity-mode)
 (defcustom unity-header-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-examples/temp_sensor/src/" "Header Files Directory"
+  (concat unity-project-root-dir "src/")
+  "Header Files Directory"
 :type 'string
 :group 'unity-mode)
 (defcustom
   unity-mocks-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-examples/temp_sensor/mocks" "Mock Files Directory"
+  (concat unity-project-root-dir "mocks/")
+  "Mock Files Directory"
 :type 'string
 :group 'unity-mode)
 (defcustom
   unity-build-dir
-  "/home/martyn/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/\
-examples/temp_sensor/build/"
+  (concat unity-ceedling-root-dir "build/")
   "Build Files Directory"
   :type 'string
   :group 'unity-mode)
