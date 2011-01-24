@@ -2,8 +2,9 @@ images
 project.**
 ruby-test.el
 unity-mode.html
-test
 unity-mode.org
+test
 \#**.**
 .#**.**
 ceedling
+.gitignore 

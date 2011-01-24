@@ -123,6 +123,20 @@ Unit testing integration"
       (setq msg "t"))
   (error (concat "dbg: " msg))) 
 
+(add-hook 'after-save-hook 'unity-eval-src-and-tests)
+
+(defun unity-switch-src-control-file()
+  "Fast route to unity-mode.org and back"
+  (interactive)
+  (let ((project-file 
+         "/home/martyn/Dropbox/OrgData/unity-mode.org"))
+    (if (not (equal (buffer-file-name) project-file))
+        (progn (setq unity-last-buffer (buffer-file-name))
+               (message (concat "switching to " project-file))
+               (find-file project-file))
+      (progn (message (concat "switching to " unity-last-buffer))
+             (switch-to-buffer  (file-name-nondirectory unity-last-buffer))))))
+
 (defun unity-replace-regex-in-string (regex replaced string)
   (let ((case-fold-search nil)
         (case-replace nil))
@@ -216,57 +230,7 @@ Unit testing integration"
              "Invalid file-type"
              file-type
              "in unity-file-extension!"))))
-
-(defun unity-strip-affixes (file-name)
-  (unity-strip-affix
-   (unity-strip-affix
-    file-name "suffix-type")
-   "prefix-type"))
-
-(defun unity-strip-affix (file-name affix-type)
-  "remove defined affix from file-name"
-  (cond ((equal affix-type "prefix-type")
-         (unity-strip-affix-core file-name affix-type))
-        ((equal affix-type "suffix-type")
-         (operate-sub-extension 'unity-strip-affix-core
-                                file-name "suffix-type"))
-        ( t (unity-error-with-param
-             "Invalid affix-type"
-             affix-type
-             "in unity-strip-affix"))))
-
-(defun unity-strip-affix-core (file-name affix-type)
-  (let ((regex1
-         (cond ((equal affix-type "prefix-type")
-                "^")
-               ((equal affix-type "suffix-type")
-                "")))
-        (regex2
-         (cond ((equal affix-type "prefix-type")
-                "")
-               ((equal affix-type "suffix-type")
-                "$")))
-        (list 
-         (cond ((equal affix-type "prefix-type")
-                (unity-file-prefix-list))
-               ((equal affix-type "suffix-type")
-                (unity-file-suffix-list)))))
-
-    (mapcar (lambda (x)
-              (setq file-name
-                    (unity-replace-regex-in-string
-                     (concat regex1 x regex2)
-                     ""
-                     file-name)))
-            list)
-    file-name))
-
-(defun unity-read-name (file-name)
-  (unity-strip-affixes
-   (file-name-nondirectory 
-    (file-name-sans-extension
-     file-name))))
-
+ 
 (defun unity-string-exact-match (regex string &optional start)
   (let ((case-fold-search nil)
         (case-replace nil))
@@ -309,20 +273,6 @@ Unit testing integration"
        (unity-check-suffix-p file-name file-type)
        (unity-check-extension-p file-name file-type)))
 
-
-;; (unity-string-exact-match
-;;  (concat
-;;   "^"
-;;   (unity-file-prefix file-type)
-;;   (error (unity-read-name file-name file-type))
-;;   (unity-file-suffix file-type)
-;;   "\\"
-
-;;   (unity-file-extension file-type)
-;;   "$")
-
-;;  (file-name-nondirectory file-name))))
-
 (defun unity-is-test-file-p (file-name)
   "Returns true if the file is a test file"
   (if (equal (unity-read-extension file-name)
@@ -332,11 +282,8 @@ Unit testing integration"
 
 (defun unity-is-src-file-p (file-name)
   "Returns t if filename has a C extension and is not a testfile"
-                                        ;  (dbg (unity-check-prefix-p file-name "src-file"));
-                                        ;  (dbg  (unity-check-extension-p file-name "src-file"))
   (and (unity-check-prefix-p file-name "src-file")
        (unity-check-extension-p file-name "src-file")))
-                                        ;TODO  (unity-is-file-type-p file-name "src-file"))
 
 (defun unity-is-header-file-p (file-name)
   "Returns true if the file is a header file"
@@ -363,62 +310,13 @@ Unit testing integration"
       ".*\\.*")
      (file-name-nondirectory file-name))))
 
-;; (defun unity-check-suffix-p () (file-name file-type)
-;;   (let ((suffix
-;;          (unity-file-suffix file-type)))
-
-;;     (dbg "here")
-
-;;     (unity-string-exact-match
-;;      (concat
-;;       "^.*"
-;;       suffix
-;;       "\\.*")
-;;      (file-name-nondirectory file-name))))
-
-(defun unity-is-model-file-p (file-name)
-  "Returns true if FILE-NAME is a model file"
-  ;;  (unity-is-file-type-p file-name "model-file"))
-  (unity-string-exact-match
-   (concat
-    "^.*"
-    unity-model-file-suffix
-    "\\"
-    unity-src-file-extension
-    "$")
-   (file-name-nondirectory file-name)))
-
 (defun unity-is-pattern-file-p (file-name pattern-match)
   "Returns true if FILE-NAME is a file of FILE-TYPE."
   (unity-string-exact-match
    (concat
     "^.*"
     pattern-match
-    "\\"
-    unity-src-file-extension
-    "$")
-   (file-name-nondirectory file-name)))
-
-(defun unity-is-conductor-file-p (file-name)
-  "Returns true if FILE-NAME is a conductor file"
-  ;;(unity-is-file-type-p file-name "conductor-file")
-  (unity-string-exact-match
-   (concat
-    "^.*"
-    unity-conductor-file-suffix
-    "\\"
-    unity-src-file-extension
-    "$")
-   (file-name-nondirectory file-name)))
-
-(defun unity-is-hardware-file-p (file-name)
-  "Returns true if FILE-NAME is a hardware file"
-  ;;  (unity-is-file-type-p file-name "hardware-file"))
-  (unity-string-exact-match
-   (concat
-    "^.*"
-    unity-hardware-file-suffix
-    "\\"
+    "\\" 
     unity-src-file-extension
     "$")
    (file-name-nondirectory file-name)))
@@ -640,24 +538,6 @@ examples/temp_sensor/rakefile.rb" ))
             help-echo "RET to visit location"
             keymap unity-backtrace-key-map))
    ))
-;; (defvar unity-font-lock-keywords
-;;   (list
-;;    '("^[[:space:]]*\\[?\\(\\([[:graph:]]*\\):\\([[:digit:]]+\\)\\):" 1 ; test/unit backtrace
-;;      `(face font-lock-warning-face
-;; 	    message ((file-name . ,(buffer-substring-no-properties (match-beginning 2) (match-end 2)))
-;; 		     (line-number . ,(string-to-number (buffer-substring-no-properties (match-beginning 3) (match-end 3)))))
-;; 	    follow-link t
-;; 	    mouse-face highlight
-;; 	    help-echo "RET to visit location"
-;; 	    keymap unity-backtrace-key-map))
-;;    '("^[[:alnum:]_]+(.+) \\[\\(\\([[:graph:]]*\\):\\([[:digit:]]+\\)\\)\\]:" 1 ; rspec backtrace
-;;      `(face font-lock-warning-face
-;; 	    message ((file-name . ,(buffer-substring-no-properties (match-beginning 2) (match-end 2)))
-;; 		     (line-number . ,(string-to-number (buffer-substring-no-properties (match-beginning 3) (match-end 3)))))
-;; 	    follow-link t
-;; 	    mouse-face highlight
-;; 	    help-echo "RET to visit location"
-;; 	    keymap unity-backtrace-key-map))))
 
 (defun unity-test-mode ()
   "minor mode for Unity, CMock, and Ceedling
@@ -785,125 +665,53 @@ Return a new string containing the rakefile contents with ceedling-rakefile-targ
                 (unity-replace-regex-in-string ".rb" "" name) "_"
                 (current-time-string test-time) ".rb"))))
 
-(defun unity-file-exists-p (file-name file-type toggle-type)
+(defun unity-file-exists-p (file-name file-type)
   "Determines whether the argument FILE-NAME is present in the
 unity directories.
 
 Second argument FILE-TYPE is a string containing file type
-such as \"str-type\.
+such as \"str-type\"."
 
-Third argument TOGGLE-TYPE is a string containing toggle type
-such as \"mch-type\"."
   (file-exists-p
    (concat
     (unity-select-path
      file-name
-     file-type
-     toggle-type)
+     file-type)
     file-name)))
-   
+
 (defun unity-dest-file-type (switch-type)
   (concat
    (unity-replace-regex-in-string "^.*-" "" switch-type)
    "-type"))
 
-(defun unity-select-path (file-name file-type toggle-type)
-  (cond ((equal toggle-type "non-mch-type")
-         (cond ((equal file-type "src-type")
-                unity-src-dir)
-               ((equal file-type "test-type")
-                unity-test-dir)
-               ((equal file-type "header-type")
-                unity-header-dir)
-               (t (unity-error-with-param
-                   "Invalid file-type"
-                   file-type
-                   "in unity-select-path"))))
-        ((equal toggle-type "mch-type")
-         (cond ((unity-is-test-file-p file-name)
-                unity-test-dir)
-               (t unity-src-dir)))
+(defun unity-select-path (file-name file-type)
+  (cond ((equal file-type "src-type")
+         unity-src-dir)
+        ((equal file-type "test-type")
+         unity-test-dir)
+        ((equal file-type "header-type")
+         unity-header-dir)
         (t (unity-error-with-param
-            "Invalid toggle-type"
-            toggle-type
+            "Invalid file-type"
+            file-type
             "in unity-select-path"))))
 
-(defun unity-switch-buffer (file-name switch-type toggle-type &optional test)
-  (let (
-        (temp-name
-         (unity-convert-file-name 
-          file-name switch-type toggle-type)))
+(defun unity-switch-buffer (file-name switch-type &optional test)
+  (let ((temp-name
+         (unity-switch-file-name
+          file-name switch-type)))
 
     (if (unity-file-exists-p
          temp-name
-         (unity-dest-file-type switch-type) toggle-type)
+         (unity-dest-file-type switch-type))
         (if (not test)
             (find-file
              (concat
               (unity-select-path
                file-name
-               (unity-dest-file-type switch-type)
-               toggle-type)
+               (unity-dest-file-type switch-type))
               temp-name))
-          temp-name))))
-
-(defun unity-select-replacement-suffix (switch-type)
-  (cond ((equal switch-type "conductor-to-model")
-         unity-model-file-suffix)
-        ((equal switch-type "hardware-to-model")
-         unity-model-file-suffix)
-        ((equal switch-type "model-to-conductor")
-         unity-conductor-file-suffix)
-        ((equal switch-type "hardware-to-conductor")
-         unity-conductor-file-suffix)
-        ((equal switch-type "conductor-to-hardware")
-         unity-hardware-file-suffix)
-        ((equal switch-type "model-to-hardware")
-         unity-hardware-file-suffix)
-        (t (unity-error-with-param
-            "Invalid switch-type"
-            switch-type
-            "in  unity-select-replacement-suffix"))))
-
-(defun unity-select-replaced-suffix (switch-type)
-  (cond ((equal switch-type "model-to-conductor")
-         unity-model-file-suffix)
-        ((equal switch-type "model-to-hardware")
-         unity-model-file-suffix)
-        ((equal switch-type "conductor-to-hardware")
-         "Conductor")
-        ;;         unity-conductor-file-suffix)
-        ((equal switch-type "conductor-to-model")
-         unity-conductor-file-suffix)
-        ((equal switch-type "hardware-to-conductor")
-         unity-hardware-file-suffix
-         (unity-replace-regex-in-string
-          (concat (unity-select-replaced-suffix switch-type) "\\"
-                  unity-src-file-extension "$")
-          (concat (unity-select-replacement-suffix switch-type)
-                  unity-src-file-extension)
-          ;;convert to src if header
-          (unity-header-to-src-file-name
-           file-name)))))
-
-(defun unity-select-replaced-suffix (switch-type)
-  (cond ((equal switch-type "model-to-conductor")
-         unity-model-file-suffix)
-        ((equal switch-type "model-to-hardware")
-         unity-model-file-suffix)
-        ((equal switch-type "conductor-to-hardware")
-         "Conductor")
-        ;;         unity-conductor-file-suffix)
-        ((equal switch-type "conductor-to-model")
-         unity-conductor-file-suffix)
-        ((equal switch-type "hardware-to-conductor")
-         unity-hardware-file-suffix)
-        ((equal switch-type "hardware-to-model")
-         unity-hardware-file-suffix)
-        (t (unity-error-with-param
-            "Invalid switch-type"
-            switch-type
-            " in unity-select-replaced-suffix"))))
+        temp-name))))
 
 (defun unity-switch-file-name (file-name switch-type)
   (cond ((string= switch-type "test-to-src")
@@ -925,55 +733,11 @@ such as \"mch-type\"."
             switch-type
             "in unity-switch-file-name!"))))
 
-(defun unity-convert-MCH-file-name (file-name switch-type)
-  (unity-replace-regex-in-string
-   (concat (unity-select-replaced-suffix switch-type) "\\"
-           unity-src-file-extension "$")
-   (concat (unity-select-replacement-suffix switch-type)
-           unity-src-file-extension)
-   (unity-header-to-src-file-name file-name)))
-
-(defun unity-convert-file-name (file-name switch-type toggle-type)
-  (cond ((equal toggle-type "mch-type")
-         (unity-convert-MCH-file-name file-name switch-type))
-        ((equal toggle-type "non-mch-type")
-         (unity-switch-file-name file-name switch-type))
-        (t (unity-error-with-param
-            "Invalid toggle-type"
-            toggle-type
-            "in unity-convert-file-name"))))
-
 (defun unity-buffer-name-nondirectory-or-test-file (test-file)
   (if(not test-file)
       (file-name-nondirectory buffer-file-name)
     test-file))
-
-(defun unity-cycle-check-prefix-destinations  (source &optional test test-file)
-  ""
-  (interactive)
-  (let ((return nil)
-        (file-name
-         (unity-buffer-name-nondirectory-or-test-file test-file)))
-
-    ((unity-is-model-file-p file-name)
-     (if test
-         (setq return
-               (unity-switch-buffer
-                file-name
-                "model-to-conductor"
-                "mch-type" test))) ;passes true if test
-     (if(not
-         (unity-switch-buffer
-          file-name
-          "model-to-conductor"
-          "mch-type"))
-         (if(not
-             (unity-switch-buffer
-              file-name
-              "model-to-hardware"
-              "mch-type"))
-             (unity-error "No matching conductor or hardware file"))))))
-
+ 
 (defun unity-string-exact-match (regex string &optional start)
   (let ((case-fold-search nil)
         (case-replace nil))
@@ -1090,40 +854,27 @@ ATTRIB-TYPE attribute type (string)
         j)
     (unity-error "File must exist on disk - please save first")))
 
-(defun unity-new-switch-direction-list (file-name cycle-type)
-  ) 
+(defun unity-switch-direction-list (file-name)
+  (cond ((unity-is-test-file-p file-name)
+         (list "test-to-src" "test-to-header"))
+        ((unity-is-src-file-p file-name)
+         (list "src-to-header" "src-to-test"))
+        ((unity-is-header-file-p file-name)
+         (list "header-to-test" "header-to-src"))
+        (t ((message
+             (concat
+              "No relevant cycle found for"
+              file-name))))))
 
-(defun unity-switch-direction-list (file-name cycle-type)
-  (cond ((equal "mch-type" cycle-type)
-         (cond ((unity-is-model-file-p file-name)
-                (list "model-to-conductor" "model-to-hardware"))
-               ((unity-is-conductor-file-p file-name)
-                (list "conductor-to-hardware" "conductor-to-model"))
-               ((unity-is-hardware-file-p file-name)
-                (list "hardware-to-model" "hardware-to-conductor"))
-               ((unity-is-header-file-p file-name)
-                (list "header-to-src" "header-to-test"))))
-        ((equal "non-mch-type" cycle-type )
-         (cond ((unity-is-test-file-p file-name)
-                (list "test-to-src" "test-to-header"))
-               ((unity-is-src-file-p file-name)
-                (list "src-to-header" "src-to-test"))
-               ((unity-is-header-file-p file-name)
-                (list "header-to-test" "header-to-src"))))
-        (t ((unity-error-with-param
-             "Invalid cycle-type"
-             cycle-type
-             "in unity-switch-direction-list")))))
-
-(defun unity-find-and-switch-buffer (file-name cycle-type &optional test)
+(defun unity-find-and-switch-buffer (file-name &optional test)
   (let ((temp nil)
         (switch-direction-list
-         (unity-switch-direction-list file-name cycle-type)))
+         (unity-switch-direction-list file-name)))
     (mapcar (lambda (x)
               (while(not temp)
                 (setq temp 
                       (unity-switch-buffer
-                       file-name x cycle-type test))))
+                       file-name x test))))
             switch-direction-list)
     (if(not temp)
         (error "No matching pattern files found!"))
@@ -1134,7 +885,7 @@ ATTRIB-TYPE attribute type (string)
   (interactive)
   (unity-find-and-switch-buffer
    (unity-buffer-name-nondirectory-or-test-file test-file)
-   "non-mch-type" test-file))
+   test))
 
 (defun unity-cycle-MCH-buffer (&optional test-file)
   "Cycle between model conductor and hardware buffers "
@@ -1147,9 +898,6 @@ ATTRIB-TYPE attribute type (string)
     
     (unity-new-find-and-switch-buffer file-name
                                       unity-temp-sensor-project-list test-file)))
-
-;;    (unity-find-and-switch-buffer
-;;     file-name "mch-type" test-file)))
 
 (defun unity-cycle-alpha-ascending ()
   (interactive)
@@ -1360,7 +1108,7 @@ PATTERN is the pattern to use"
   (if (unity-is-test-file-p file-name)
       unity-test-dir
     unity-src-dir))
-                            
+
 (defun unity-new-find-and-switch-buffer (file-name patterns &optional test)
   (let ((current-index
          (unity-extract-pattern-index-from-file-name file-name unity-temp-sensor-project-list))
@@ -1417,37 +1165,32 @@ PATTERN is the pattern to use"
   file-name)
 
 (defun unity-build-pattern-file-name (file-name old-pattern new-pattern)
-          (let ((ext (file-name-extension file-name)))
-            (let ((file-name
-                   (unity-replace-regex-in-string
-                    (concat old-pattern "$")
-                    new-pattern
-                    (file-name-sans-extension file-name))))
-              (concat file-name "." ext))))
+  (let ((ext (file-name-extension file-name)))
+    (let ((file-name
+           (unity-replace-regex-in-string
+            (concat old-pattern "$")
+            new-pattern
+            (file-name-sans-extension file-name))))
+      (concat file-name "." ext))))
 
 (defun unity-new-read-name (file-name pattern)
-          (unity-replace-regex-in-string
-           (concat pattern "$")
-           ""
-           (file-name-sans-extension file-name)))
+  (unity-replace-regex-in-string
+   (concat pattern "$")
+   ""
+   (file-name-sans-extension file-name)))
 
 (defun unity-read-pattern-in-file-name (file-name index pattern-list)
-          (let ((i 0)
-                (finished nil)
-                (pattern nil))
-            (while(not finished)
-              (setq pattern
-                    (unity-try-pattern-option index i pattern-list))
-              (if(or
-                  (not pattern)
-                  (unity-is-pattern-in-file-name-p file-name pattern))
-                  (setq finished t)
-                (setq i (+ i 1))))
-            pattern))
+  (let ((i 0)
+        (finished nil)
+        (pattern nil))
+    (while(not finished)
+      (setq pattern
+            (unity-try-pattern-option index i pattern-list))
+      (if(or
+          (not pattern)
+          (unity-is-pattern-in-file-name-p file-name pattern))
+          (setq finished t)
+        (setq i (+ i 1))))
+    pattern))
 
 (provide 'unity-mode)
-;; ; (add-hook 'after-save-hook 'unity-eval-src-and-tests)
- 
-;; test 1 
-;; test 2
-;; test 3

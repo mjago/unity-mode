@@ -8,13 +8,13 @@
               "ceedling/trunk/examples/temp_sensor/"))
 (setq unity-test-time '(19750 . 10)) ;;used for ert tests
 (setq unity-test-patterns 
-      '((pattern-1  '("Controller" "_controller"))
+      '((pattern-1  '("Conductor" "_conductor"))
         (pattern-2  '("Model" "_model"))
         (pattern-3  '("Hardware" "_hardware"))
         (pattern-4  '("Other" "_other"))))
 
-(setq unity-test-suffix-3 
-      '((0  '("Controller" "_controller"))
+(setq unity-test-project-list 
+      '((0  '("Conductor" "_conductor"))
         (1  '("Model" "_model"))
         (2  '("Hardware" "_hardware"))
         (3  '("Other" "_other"))
@@ -442,193 +442,86 @@ task :default => [:clobber, 'test:all']\n\n"
 (ert-deftest unity-switch-buffer-with-switch-type-test-to-src ()
   (should (equal "AdcConductor.c"
                  (unity-switch-buffer
-                  "TestAdcConductor.c" "test-to-src" "non-mch-type" t))))
+                  "TestAdcConductor.c" "test-to-src" t))))
 
 (ert-deftest unity-switch-buffer-with-switch-type-test-to-src ()
   (should (equal "AdcConductor.h"
                  (unity-switch-buffer
-                  "AdcConductor.c" "src-to-header" "non-mch-type" t))))
+                  "AdcConductor.c" "src-to-header" t))))
 
 (ert-deftest unity-switch-buffer-with-switch-type-test-to-header ()
   (should (equal "AdcConductor.h"
                  (unity-switch-buffer
-                  "TestAdcConductor.c" "test-to-header" "non-mch-type" t))))
+                  "TestAdcConductor.c" "test-to-header" t))))
 
 (ert-deftest unity-switch-buffer-with-switch-type-src-to-test ()
   (should (equal "TestAdcConductor.c"
                  (unity-switch-buffer
-                  "AdcConductor.c" "src-to-test" "non-mch-type" t))))
+                  "AdcConductor.c" "src-to-test" t))))
 
 (ert-deftest unity-switch-buffer-with-switch-type-header-to-test ()
   (should (equal "TestAdcConductor.c"
                  (unity-switch-buffer
-                  "AdcConductor.h" "header-to-test" "non-mch-type" t))))
+                  "AdcConductor.h" "header-to-test" t))))
 
 (ert-deftest unity-switch-buffer-with-switch-type-header-to-src ()
   (should (equal "AdcHardwareConfigurator.c"
                  (unity-switch-buffer
-                  "AdcHardwareConfigurator.h" "header-to-src" "non-mch-type" t))))
+                  "AdcHardwareConfigurator.h" "header-to-src" t))))
 
-(ert-deftest unity-switch-buffer-with-switch-type-model-to-conductor ()
-  (should (equal "AdcConductor.c"
-                 (unity-switch-buffer
-                  "AdcModel.c" "model-to-conductor" "mch-type" t)))
-  )
-(ert-deftest unity-switch-buffer-with-switch-type-model-to-hardware ()
-  (should (equal "AdcHardware.c"
-                 (unity-switch-buffer
-                  "AdcModel.c" "model-to-hardware" "mch-type" t))))
+;; (ert-deftest unity-switch-buffer-with-switch-type-model-to-conductor ()
+;;   (should (equal "AdcConductor.c"
+;;                  (unity-switch-buffer
+;;                   "AdcModel.c" "model-to-conductor" t)))
+;;   )
+;; (ert-deftest unity-switch-buffer-with-switch-type-model-to-hardware ()
+;;   (should (equal "AdcHardware.c"
+;;                  (unity-switch-buffer
+;;                   "AdcModel.c" "model-to-hardware" t))))
 
-(ert-deftest unity-switch-buffer-with-switch-type-conductor-to-hardware ()
-  (should (equal "AdcHardware.c"
-                 (unity-switch-buffer
-                  "AdcConductor.c" "conductor-to-hardware" "mch-type" t))))
+;; (ert-deftest unity-switch-buffer-with-switch-type-conductor-to-hardware ()
+;;   (should (equal "AdcHardware.c"
+;;                  (unity-switch-buffer
+;;                   "AdcConductor.c" "conductor-to-hardware" t))))
 
-(ert-deftest unity-switch-buffer-with-switch-type-conductor-to-model ()
-  (should (equal "AdcModel.c"
-                 (unity-switch-buffer
-                  "AdcConductor.c" "conductor-to-model" "mch-type" t))))
+;; (ert-deftest unity-switch-buffer-with-switch-type-conductor-to-model ()
+;;   (should (equal "AdcModel.c"
+;;                  (unity-switch-buffer
+;;                   "AdcConductor.c" "conductor-to-model" t))))
 
-(ert-deftest unity-switch-buffer-with-switch-type-hardware-to-model ()
-  (should (equal "AdcModel.c"
-                 (unity-switch-buffer
-                  "AdcHardware.c" "hardware-to-model" "mch-type" t))))
+;; (ert-deftest unity-switch-buffer-with-switch-type-hardware-to-model ()
+;;   (should (equal "AdcModel.c"
+;;                  (unity-switch-buffer
+;;                   "AdcHardware.c" "hardware-to-model" t))))
 
-(ert-deftest unity-switch-buffer-with-switch-type-hardware-to-conductor ()
-  (should (equal "AdcConductor.c"
-                 (unity-switch-buffer
-                  "AdcHardware.c" "hardware-to-conductor" "mch-type" t))))
+;; (ert-deftest unity-switch-buffer-with-switch-type-hardware-to-conductor ()
+;;   (should (equal "AdcConductor.c"
+;;                  (unity-switch-buffer
+;;                   "AdcHardware.c" "hardware-to-conductor" t))))
 
-(ert-deftest unity-switch-buffer-with-test-file-type-and-switch-type-hardware-to-conductor ()
-  (should (equal "TestAdcConductor.c"
-                 (unity-switch-buffer
-                  "TestAdcHardware.c" "hardware-to-conductor" "mch-type" t))))
+;; (ert-deftest unity-switch-buffer-with-test-file-type-and-switch-type-hardware-to-conductor ()
+;;   (should (equal "TestAdcConductor.c"
+;;                  (unity-switch-buffer
+;;                   "TestAdcHardware.c" "hardware-to-conductor" t))))
 
-(ert-deftest unity-switch-buffer-with-header-and-switch-type-hardware-to-conductor ()
-  (should (equal "AdcConductor.c"
-                 (unity-switch-buffer
-                  "AdcHardware.h" "hardware-to-conductor" "mch-type" t))))
+;; (ert-deftest unity-switch-buffer-with-header-and-switch-type-hardware-to-conductor ()
+;;   (should (equal "AdcConductor.c"
+;;                  (unity-switch-buffer
+;;                   "AdcHardware.h" "hardware-to-conductor" t))))
 
 (ert-deftest unity-create-src-file-name-test ()
   (should (equal "AdcConductor.c"
                  (unity-create-src-file-name "TestAdcConductor.c")))
   (should-not (equal "AdcConductor"
                      (unity-create-src-file-name "testAdcConductor"))))
-
-
-(ert-deftest unity-convert-file-name-with-conductor-to-model-and-mch-type ()
-  (should
-   (equal
-    "nameModel.c"
-    (unity-convert-file-name
-     "nameConductor.h"
-     "conductor-to-model" "mch-type"))))
-
-(ert-deftest unity-convert-file-name-with-conductor-to-model-and-mch-type-with-path ()
-  (should
-   (equal
-    "~/nameModel.c"
-    (unity-convert-file-name
-     "~/nameConductor.h"
-     "conductor-to-model" "mch-type"))))
-
-(ert-deftest unity-convert-file-name-with-conductor-to-hardware-and-mch-type ()
-  (should
-   (equal
-    "nameHardware.c"
-    (unity-convert-file-name
-     "nameConductor.c"
-     "conductor-to-hardware" "mch-type"))))
-
-(ert-deftest unity-convert-file-name-with-model-to-conductor-and-mch-type ()
-  (should
-   (equal
-    "nameConductor.c"
-    (unity-convert-file-name
-     "nameModel.h"
-     "model-to-conductor" "mch-type"))))
-
-(ert-deftest unity-convert-file-name-with-model-to-hardware-and-mch-type ()
-  (should
-   (equal
-    "~/nameHardware.c"
-    (unity-convert-file-name
-     "~/nameModel.h"
-     "model-to-hardware" "mch-type"))))
-
-(ert-deftest unity-convert-file-name-with-hardware-to-model-and-mch-type ()
-  (should
-   (equal
-    "nameModel.c"
-    (unity-convert-file-name
-     "nameHardware.c"
-     "hardware-to-model" "mch-type"))))
-
-(ert-deftest unity-convert-file-name-with-src-to-header-and-non-mch-type ()
-  (should
-   (equal
-    "name.h"
-    (unity-convert-file-name
-     "name.c"
-     "src-to-header" "non-mch-type"))))
-
-(ert-deftest unity-convert-file-name-with-src-to-test-and-non-mch-type ()
-  (should
-   (equal
-    "Testname.c"
-    (unity-convert-file-name
-     "name.c"
-     "src-to-test" "non-mch-type"))))
-
-(ert-deftest unity-convert-file-name-with-header-to-test-and-non-mch-type ()
-  (should
-   (equal
-    "Testname.c"
-    (unity-convert-file-name
-     "name.h"
-     "header-to-test" "non-mch-type"))))
-
-(ert-deftest unity-convert-file-name-with-header-to-src-and-non-mch-type ()
-  (should
-   (equal
-    "name.c"
-    (unity-convert-file-name
-     "name.h"
-     "header-to-src" "non-mch-type"))))
-
-(ert-deftest unity-convert-file-name-with-test-to-src-and-non-mch-type ()
-  (should
-   (equal
-    "name.c"
-    (unity-convert-file-name
-     "Testname.c"
-     "test-to-src" "non-mch-type"))))
-
-(ert-deftest unity-convert-file-name-with-test-to-header-and-non-mch-type ()
-  (should
-   (equal
-    "name.h"
-    (unity-convert-file-name
-     "Testname.c"
-     "test-to-header" "non-mch-type"))))
-
-(ert-deftest unity-is-model-file-p-test ()
-  (should (unity-is-model-file-p "AdcModel.c"))
-  (should-not (unity-is-conductor-file-p "Adc.c"))
-  (should-not (unity-is-conductor-file-p "Adc_conductor.c")))
-
-
-(ert-deftest unity-is-conductor-file-p-test ()
-  (should (unity-is-conductor-file-p "AdcConductor.c"))
-  (should-not (unity-is-conductor-file-p "Adc.c"))
-  (should-not (unity-is-conductor-file-p "Adc_conductor.c")))
-
-(ert-deftest unity-is-hardware-file-p-test ()
-  (should (unity-is-hardware-file-p "AdcHardware.c"))
-  (should-not (unity-is-hardware-file-p "Adchardware.c"))
-  (should-not (unity-is-hardware-file-p "AdcModel.c"))
-  (should-not (unity-is-hardware-file-p "Adchardware.h")) ;TODO is this what we want?
-  (should (unity-is-hardware-file-p "nameHardware.c")))
+ 
+;; (ert-deftest unity-switch-file-name-with-conductor-to-hardware()
+;;   (should
+;;    (equal
+;;     "nameConductor.h"
+;;     (unity-convert-file-name
+;;      "nameConductor.c"
+;;      "conductor-to-hardware"))))
 
 (ert-deftest unity-error-test ()
   (should (equal "Error! (nil error message) !"
@@ -684,13 +577,6 @@ task :default => [:clobber, 'test:all']\n\n"
   (should (equal "name.c" (unity-strip-affix "Testname.c" "prefix-type")))
   )
 
-;; (should (equal "" (unity-read-attribute "name" "header-type")))
-;; (should (equal ".h" (unity-read-attribute "name.h" "header-type")))
-;; (should(not(equal nil (unity-read-attribute "" "header-type"))))
-
-
-                                        ;  (should-not (equal '("test") (unity-file-prefix-list))))
-
 (ert-deftest unity-file-extension-test ()
   (should (equal ".c" (unity-file-extension "test-file")))
   (should (equal ".c" (unity-file-extension "src-file")))
@@ -722,7 +608,6 @@ task :default => [:clobber, 'test:all']\n\n"
    (equal "aaaaa" (replace-regexp-in-string "A" "a" "AaAaA" nil nil nil nil)))
   (should
    (equal "AAAAA" (replace-regexp-in-string "a" "A" "AaAaA" nil nil nil nil)))
-
   )
 
 (ert-deftest unity-replace-regex-in-string-tests ()
@@ -850,7 +735,7 @@ task :default => [:clobber, 'test:all']\n\n"
            4
            (unity-index-current-buffer
             (concat unity-test-project-root
-                    "src/AdcConductor.c") t))) 
+                    "src/AdcConductor.c") t)))
   (should (equal
            6
            (unity-index-current-buffer
@@ -864,18 +749,18 @@ task :default => [:clobber, 'test:all']\n\n"
   (should (equal
            "Hardware"
            (unity-read-suffix "AdcHardware.c")))
-  ;; (should (equal
-  ;;          "Model"
-  ;;          (unity-read-suffix "AdcModel.c")))
-  ;; (should (equal
-  ;;          ""
-  ;;          (unity-read-suffix "Adc.h")))
-  ;; (should (equal
-  ;;          ""
-  ;;          (unity-read-suffix "Adc.c")))
-  ;;  (should (equal
-  ;;           ""
-  ;;           (unity-read-suffix "TestAdc.c")))
+  (should (equal
+           "Model"
+           (unity-read-suffix "AdcModel.c")))
+  (should (equal
+           ""
+           (unity-read-suffix "Adc.h")))
+  (should (equal
+           ""
+           (unity-read-suffix "Adc.c")))
+   (should (equal
+            ""
+            (unity-read-suffix "TestAdc.c")))
   )
 
 (ert-deftest unity-get-suffix-file-type ()
@@ -932,14 +817,14 @@ task :default => [:clobber, 'test:all']\n\n"
 ;;                    unity-test-project-root
 ;;                    "nameModel.c")
 ;;                   "model-to-conductor"
-;;                   "mch-type" t)))
+;;                   t)))
 ;;   )
 
 (ert-deftest unity-find-and-switch-buffer-test ()
-  (should (unity-find-and-switch-buffer "AdcConductor.c" "mch-type" t))
-  (should (unity-find-and-switch-buffer "AdcHardware.c" "mch-type" t))
-  (should (unity-find-and-switch-buffer "AdcModel.c" "mch-type" t))
-  (should (unity-find-and-switch-buffer "AdcModel.h" "non-mch-type" t))
+  (should (unity-find-and-switch-buffer "AdcConductor.c" t))
+  (should (unity-find-and-switch-buffer "AdcHardware.c" t))
+  (should (unity-find-and-switch-buffer "AdcModel.c" t))
+  (should (unity-find-and-switch-buffer "AdcModel.h" t))
   ) 
 
 (ert-deftest unity-get-suffix-test ()
@@ -1001,105 +886,105 @@ task :default => [:clobber, 'test:all']\n\n"
 (ert-deftest alist-tests ()
 
   (should (equal
-           '(pattern-1 '("Controller" "_controller"))
+           '(pattern-1 '("Conductor" "_conductor"))
            (assoc 'pattern-1 unity-test-patterns)))
   (should (equal
-           '('("Controller" "_controller"))
+           '('("Conductor" "_conductor"))
            (cdr (assoc 'pattern-1 unity-test-patterns))))
   (should (equal
-           ''("Controller" "_controller")
+           ''("Conductor" "_conductor")
            (car(cdr (assoc 'pattern-1 unity-test-patterns)))))
   (should (equal
-           ''("Controller" "_controller")
+           ''("Conductor" "_conductor")
            (car(cdr(assoc 'pattern-1 unity-test-patterns)))))
   (should (equal
-           '("Controller" "_controller")
+           '("Conductor" "_conductor")
            (car(last(car(cdr(assoc 'pattern-1 unity-test-patterns)))))))
   (should (equal
-           "Controller"
+           "Conductor"
            (car(car(last(car(cdr(assoc 'pattern-1 unity-test-patterns))))))))
   (should (equal
-           "_controller"
+           "_conductor"
            (car(last(car(last(car(cdr(assoc 'pattern-1 unity-test-patterns)))))))))
   (should (equal
-           "Controller"
+           "Conductor"
            (car(car(last(cadr(assoc 'pattern-1 unity-test-patterns)))))))
   (should (equal
-           "Controller"
+           "Conductor"
            (car(car(last(cadr(assoc 'pattern-1 unity-test-patterns)))))))
   
 
-  (should (equal "Controller"
-                 (car '("Controller" "_controller"))))
-  (should (equal "_controller"
-                 (car (last'("Controller" "_controller")))))
-  (should (equal '("_controller")
-                 (cdr '("Controller" "_controller"))))
+  (should (equal "Conductor"
+                 (car '("Conductor" "_conductor"))))
+  (should (equal "_conductor"
+                 (car (last'("Conductor" "_conductor")))))
+  (should (equal '("_conductor")
+                 (cdr '("Conductor" "_conductor"))))
 
   
   ;; (should (equal unquote
-  ;;          ''("Controller" "_controller")
+  ;;          ''("Conductor" "_conductor")
   ;;          (car(cdr (assoc 'pattern-1 unity-test-patterns)))))
   ;; (should (equal
-  ;;          ''("Controller" "_controller")
+  ;;          ''("Conductor" "_conductor")
   ;;          (car(car(cdr (assoc 'pattern-1 unity-test-patterns))))))
   (should (equal
-           "Controller"
-           (car  '("Controller" "_controller"))))
+           "Conductor"
+           (car  '("Conductor" "_conductor"))))
   (should (equal '(t) (cons t '())))
   (should (equal t (car '(t) )))
   (should (equal '(t) (car '((t)))))
   (should (equal '(t) (car(car '(((t)))))))
   (should (equal t (car(car(car '(((t))))))))
 
-  (should (equal "Controller" (car(car(car '((("Controller"))))))))
+  (should (equal "Conductor" (car(car(car '((("Conductor"))))))))
 
-  (should (equal '("Controller" "_controller")
-                 (car '(("Controller" "_controller")))))
-  (should (equal "Controller"
-                 (car '("Controller" "_controller"))))
-                                        ;  (should (equal "Controller" "_controller" (car(car(car '((("Controller" "_controller"))))))))
+  (should (equal '("Conductor" "_conductor")
+                 (car '(("Conductor" "_conductor")))))
+  (should (equal "Conductor"
+                 (car '("Conductor" "_conductor"))))
+                                        ;  (should (equal "Conductor" "_conductor" (car(car(car '((("Conductor" "_conductor"))))))))
   )
 
 (ert-deftest unity-get-list-test ()
   (should (equal '("Conductor" "_conductor")
-                 (unity-get-list 0 unity-suffix-3)))
+                 (unity-get-list 0 unity-test-project-list)))
   (should (equal '("Model" "_model")
-                 (unity-get-list 1 unity-suffix-3)))
+                 (unity-get-list 1 unity-test-project-list)))
   (should (equal '("Hardware" "_hardware")
-                 (unity-get-list 2 unity-suffix-3)))
+                 (unity-get-list 2 unity-test-project-list)))
   (should (equal '("Other" "_other")
-                 (unity-get-list 3 unity-suffix-3)))
+                 (unity-get-list 3 unity-test-project-list)))
   )
 
 (ert-deftest unity-try-pattern-option-test()
   (should (equal "Conductor"
-                 (unity-try-pattern-option 0 0 unity-suffix-3)))
+                 (unity-try-pattern-option 0 0 unity-test-project-list)))
   (should (equal "_conductor"
-                 (unity-try-pattern-option 0 1 unity-suffix-3)))
+                 (unity-try-pattern-option 0 1 unity-test-project-list)))
   (should (equal nil
-                 (unity-try-pattern-option 0 2 unity-suffix-3)))
+                 (unity-try-pattern-option 0 2 unity-test-project-list)))
   )
 
 (ert-deftest unity-is-valid-pattern-p-test ()
-  (should (unity-is-valid-pattern-p 0  unity-suffix-3))
-  (should (unity-is-valid-pattern-p 1  unity-suffix-3))
-  (should-not (unity-is-valid-pattern-p 5  unity-suffix-3))
+  (should (unity-is-valid-pattern-p 0  unity-test-project-list))
+  (should (unity-is-valid-pattern-p 1  unity-test-project-list))
+  (should-not (unity-is-valid-pattern-p 5  unity-test-project-list))
   )
 
 (ert-deftest unity-get-current-pattern-index-test ()
   (should (equal 0 (unity-get-current-pattern-index
-                    "Conductor" unity-suffix-3)))
+                    "Conductor" unity-test-project-list)))
   (should (equal 1 (unity-get-current-pattern-index
-                    "Model" unity-suffix-3)))
+                    "Model" unity-test-project-list)))
   (should (equal 2 (unity-get-current-pattern-index
-                    "Hardware" unity-suffix-3)))
+                    "Hardware" unity-test-project-list)))
   (should (equal 3 (unity-get-current-pattern-index
-                    "Other" unity-suffix-3)))
+                    "Other" unity-test-project-list)))
   (should (equal 4 (unity-get-current-pattern-index
-                    "Interrupt" unity-suffix-3)))
+                    "Interrupt" unity-test-project-list)))
   (should (equal nil (unity-get-current-pattern-index
-                      "NonExistant" unity-suffix-3)))
+                      "NonExistant" unity-test-project-list)))
   )
  
 (ert-deftest unity-is-pattern-file-p-test ()
@@ -1115,7 +1000,7 @@ task :default => [:clobber, 'test:all']\n\n"
 ;;    (equal  '("Model" "_model")
 ;;            (unity-get-list index pattern)
 ;;           unity-new-switch-direction-list
-;;           "adcConductor" "mch-type"))
+;;           "adcConductor"))
 
 
 
@@ -1125,7 +1010,7 @@ task :default => [:clobber, 'test:all']\n\n"
 
 ;; (ert-deftest unity-get-list-test ()
 ;;   (should (equal '("Conductor" "_conductor")
-
+ 
 ;;                  )
 
 ;TODO
@@ -1133,34 +1018,34 @@ task :default => [:clobber, 'test:all']\n\n"
 ;  (ert-ignore) 
   (should (equal 
            "AdcConductor.c"
-           (unity-new-find-and-switch-buffer "AdcHardware.c" unity-suffix-3 t)))
+           (unity-new-find-and-switch-buffer "AdcHardware.c" unity-test-project-list t)))
   (should (equal
            "AdcModel.c"
-           (unity-new-find-and-switch-buffer "AdcConductor.c" unity-suffix-3 t)));; )
+           (unity-new-find-and-switch-buffer "AdcConductor.c" unity-test-project-list t)));; )
   (should (equal
            "AdcHardware.c"
-           (unity-new-find-and-switch-buffer "AdcModel.c" unity-suffix-3 t)))
+           (unity-new-find-and-switch-buffer "AdcModel.c" unity-test-project-list t)))
 )
     
 (ert-deftest unity-extract-pattern-index-from-file-name-test ()
   (should (equal
            0
            (unity-extract-pattern-index-from-file-name "AdcConductor.c"
-                                                       unity-suffix-3)))
+                                                       unity-test-project-list)))
   (should (equal
            1
            (unity-extract-pattern-index-from-file-name "AdcModel.c"
-                                                       unity-suffix-3)))
+                                                       unity-test-project-list)))
   (should (equal
            2
            (unity-extract-pattern-index-from-file-name "AdcHardware.c"
-                                                       unity-suffix-3)))
+                                                       unity-test-project-list)))
   (should-not
    (unity-extract-pattern-index-from-file-name "Adchardware.c"
-                                               unity-suffix-3))
+                                               unity-test-project-list))
   (should-not
    (unity-extract-pattern-index-from-file-name ""
-                                               unity-suffix-3))
+                                               unity-test-project-list))
   ) 
 
 (ert-deftest unity-is-pattern-in-file-name-p-test ()
@@ -1194,11 +1079,11 @@ task :default => [:clobber, 'test:all']\n\n"
   (should (equal
            "Conductor"
            (unity-read-pattern-in-file-name
-            "adcConductor.c" 0 unity-suffix-3)))
+            "adcConductor.c" 0 unity-test-project-list)))
   (should-not (equal
                "Conductor"
                (unity-read-pattern-in-file-name
-                "adcconductor.c" 0 unity-suffix-3)))
+                "adcconductor.c" 0 unity-test-project-list)))
   )
 
 (ert-deftest unity-get-target-dir-test ()
@@ -1206,7 +1091,6 @@ task :default => [:clobber, 'test:all']\n\n"
                  (unity-get-target-dir "AdcController.c")))
   (should (equal (concat unity-test-project-root "test/")
                  (unity-get-target-dir "TestAdcController.c")))
-
   )
 
   
