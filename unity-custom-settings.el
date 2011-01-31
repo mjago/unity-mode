@@ -3,7 +3,7 @@
   :type 'string
   :group 'unity-mode)
 (defcustom unity-project-root-dir
-  "./ceedling/trun/examples/temp_sensor/"
+  "./ceedling/trunk/examples/temp_sensor/"
   "Project Root Directory"
 :type 'string
 :group 'unity-mode)

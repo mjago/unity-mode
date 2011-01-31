@@ -5,7 +5,6 @@
 (require 'unity-auto-config)
 (require 'unity-rakefile)
 
-
 ;; Uncomment to allow self-test with ert...
 (require 'unity-tests)
 
@@ -13,7 +12,7 @@
 (defconst unity-mode-abbrev-table (make-abbrev-table))
 
 (defconst unity-mode-keymap
-  
+ 
   (make-sparse-keymap) "Keymap used in unity mode")
 
 (define-key unity-mode-keymap
@@ -37,12 +36,19 @@
   (kbd "C-; d") 'unity-test-delta)
 
 (setq unity-temp-sensor-project-list
-      ;; order patterns                    path
-      '((0     '("Conductor" "_conductor") unity-src-dir)
-        (1     '("Model" "_model")         unity-src-dir)
-        (2     '("Hardware" "_hardware")   unity-src-dir)
-        (3     '("Other" "_other")         unity-src-dir)
-        (4     '("Interrupt" "_interrupt") unity-src-dir)))
+      ;; order group position pattern                     path         
+      '((0             '("Conductor" "_conductor") unity-src-dir)
+        (1             '("Model" "_model")         unity-src-dir)
+        (2             '("Hardware" "_hardware")   unity-src-dir)
+        (3             '("Other" "_other")         unity-src-dir)
+        (4             '("Interrupt" "_interrupt") unity-src-dir)))
+;; setq unity-temp-sensor-project-list
+;;       ;; order group position pattern                     path         
+;;       '((0     2     3        '("Conductor" "_conductor") unity-src-dir)
+;;         (1     2     3        '("Model" "_model")         unity-src-dir)
+;;         (2     2     3        '("Hardware" "_hardware")   unity-src-dir)
+;;         (3     2     3        '("Other" "_other")         unity-src-dir)
+;;         (4     2     3        '("Interrupt" "_interrupt") unity-src-dir)))
 
 (setq unity-dev-project-list
       ;; order patterns                    path
@@ -293,11 +299,6 @@ Unit testing integration"
   (if (equal suffix "")
       "non-pattern-file"
     (concat (downcase suffix) "-file")))
-
-(defun unity-dest-file-type (switch-type)
-  (concat
-   (unity-replace-regex-in-string "^.*-" "" switch-type)
-   "-type"))
 
 (defun unity-check-prefix-p (file-name file-type)
   (let ((prefix
@@ -700,19 +701,19 @@ such as \"str-type\"."
   (let ((temp-name
          (unity-switch-file-name
           file-name switch-type)))
-
     (if (unity-file-exists-p
          temp-name
          (unity-dest-file-type switch-type))
-        (if (not test)
-            (find-file
-             (concat
-              (unity-select-path
-               file-name
-               (unity-dest-file-type switch-type))
-              temp-name))
-        temp-name))))
-
+        (when (not test)
+          (find-file
+           (concat
+            (unity-select-path
+             file-name
+             (unity-dest-file-type switch-type))
+            temp-name)))
+      (setq temp-name nil))
+    temp-name))
+ 
 (defun unity-switch-file-name (file-name switch-type)
   (cond ((string= switch-type "test-to-src")
          (unity-create-src-file-name file-name))
@@ -733,10 +734,14 @@ such as \"str-type\"."
             switch-type
             "in unity-switch-file-name!"))))
 
-(defun unity-buffer-name-nondirectory-or-test-file (test-file)
-  (if(not test-file)
-      (file-name-nondirectory buffer-file-name)
-    test-file))
+(defun unity-buffer-name-nondirectory-or-test-file (test-name)
+  (file-name-nondirectory
+   (if test-name
+       test-name
+     (buffer-file-name))))
+      
+  ;; (if(not (unity-is-test-file-p test-name))
+  ;;   file-name))
  
 (defun unity-string-exact-match (regex string &optional start)
   (let ((case-fold-search nil)
@@ -833,10 +838,10 @@ ATTRIB-TYPE attribute type (string)
     suffix))
 
 (defun unity-index-current-buffer(file-name &optional test)
-  (if(or
+ (if(or
       test
       (buffer-file-name))
-      (let ((files 
+     (let ((files
              (directory-files 
               (file-name-directory
                file-name)))
@@ -861,31 +866,38 @@ ATTRIB-TYPE attribute type (string)
          (list "src-to-header" "src-to-test"))
         ((unity-is-header-file-p file-name)
          (list "header-to-test" "header-to-src"))
-        (t ((message
+        (t ((error
              (concat
               "No relevant cycle found for"
               file-name))))))
 
 (defun unity-find-and-switch-buffer (file-name &optional test)
-  (let ((temp nil)
+  (let ((temp t)
+        (temp-name nil)
         (switch-direction-list
          (unity-switch-direction-list file-name)))
     (mapcar (lambda (x)
-              (while(not temp)
-                (setq temp 
+              (setq temp (length switch-direction-list))
+              (while (and
+                      (> temp 0)
+                      (not temp-name))
+                (setq temp-name
                       (unity-switch-buffer
-                       file-name x test))))
+                       file-name x test))
+                (setq temp (- temp 1))))
             switch-direction-list)
-    (if(not temp)
+    
+    (if(not temp-name)
         (error "No matching pattern files found!"))
-    temp))
+    temp-name))
 
-(defun unity-cycle-test-src-header-buffer (&optional test test-file)
+(defun unity-cycle-test-src-header-buffer (&optional test-file)
   "Toggle between test source file "
   (interactive)
+;;  (error (unity-buffer-name-nondirectory-or-test-file test-file))
   (unity-find-and-switch-buffer
-   (unity-buffer-name-nondirectory-or-test-file test-file)
-   test))
+   (unity-buffer-name-nondirectory-or-test-file
+    test-file)test-file))
 
 (defun unity-cycle-MCH-buffer (&optional test-file)
   "Cycle between model conductor and hardware buffers "
@@ -895,7 +907,6 @@ ATTRIB-TYPE attribute type (string)
     (if (unity-is-header-file-p file-name)
         (setq file-name
               (unity-switch-file-name file-name "header-to-src")))
-    
     (unity-new-find-and-switch-buffer file-name
                                       unity-temp-sensor-project-list test-file)))
 
@@ -910,24 +921,35 @@ ATTRIB-TYPE attribute type (string)
   )
 
 (defun unity-cycle-alphabetic-group
-  (file-name search-direction &optional test test-file)
+  (file-name search-direction &optional test)
   "Cycle between files alphabetically contained
    within current buffer directory."
-  
+
   (let ((idx
-         (unity-index-current-buffer file-name)))
-    (cond ((equal search-direction "ascending")
-           (if(not
-               (unity-search-buffer idx file-name "higher" search-direction))
-               (unity-search-buffer idx file-name "lower" search-direction)))
-          ((equal search-direction "descending")
-           (if(not
-               (unity-search-buffer idx file-name "lower" search-direction))
-               (unity-search-buffer idx file-name "higher" search-direction)))
-          ( t (unity-error-with-param
-               "Invalid search-direction"
-               search-direction
-               "in unity-cycle-alphabetic-group")))))
+         (unity-index-current-buffer file-name t)))
+    (let (( return-val nil))
+      (cond ((equal search-direction "ascending")
+             (setq return-val
+                   (unity-search-buffer
+                    idx file-name "higher" search-direction))
+             (if(not return-val)
+                 (setq return-val (unity-search-buffer
+                                   idx file-name "lower"
+                                   search-direction))))
+            ((equal search-direction "descending")
+             (setq return-val
+                   (unity-search-buffer
+                    idx file-name "lower"
+                    search-direction))
+             (if(not return-val)
+                 (setq return-val
+                       (unity-search-buffer
+                        idx file-name "higher" search-direction))))
+            ( t (unity-error-with-param
+                 "Invalid search-direction"
+                 search-direction
+                 "in unity-cycle-alphabetic-group")))
+      return-val)))
 
 (defun unity-alpha-start-index (search-direction higher-lower index)
   (cond ((equal search-direction "ascending")
@@ -956,7 +978,6 @@ ATTRIB-TYPE attribute type (string)
 
 (defun unity-search-buffer
   (index file-name higher-lower search-direction  &optional test)
-
   (let ((files
          (directory-files 
           (file-name-directory file-name)))
@@ -1131,7 +1152,6 @@ PATTERN is the pattern to use"
                 (progn
                   (setq upper-search nil)
                   (setq i 0))
-
               (let ((new-pattern
                      (unity-try-pattern-option
                       i
@@ -1194,3 +1214,59 @@ PATTERN is the pattern to use"
     pattern))
 
 (provide 'unity-mode)
+
+(defun unity-test (file-name patterns &optional test)
+  (let ((current-index
+         (unity-extract-pattern-index-from-file-name file-name unity-temp-sensor-project-list))
+        (finished nil) 
+        (return-index t)
+        (upper-search t))
+    (let ((current-pattern
+           (unity-read-pattern-in-file-name
+            file-name
+            current-index
+            patterns)))
+      (let ((name
+             (unity-new-read-name
+              file-name
+              current-pattern)))
+        (let ((i (+ 1 current-index))
+              (option-count 0))
+          (while(not finished) 
+            (if(not (unity-is-valid-pattern-p i patterns))
+                (progn
+                  (setq upper-search nil)
+                  (setq i 0))
+
+              (let ((new-pattern
+                     (unity-try-pattern-option
+                      i
+                      option-count
+                      patterns)))
+                (if new-pattern
+                    (let ((new-name
+                           (unity-build-pattern-file-name
+                            file-name
+                            current-pattern
+                            new-pattern)))
+                      (let ((file-with-path
+                             (concat (unity-get-target-dir
+                                      new-name)
+                                     new-name))) 
+                        (if (file-exists-p file-with-path)
+                            (progn
+                              (setq finished t)
+                              (if (not test)
+                                  (find-file file-with-path)
+                                (setq file-name new-name))))
+                        (setq option-count (+ 1 option-count))))
+                  (progn
+                    (setq option-count 0)
+                    (setq i (+ i 1))
+                    (if (not upper-search)
+                        (if (>= i current-index)
+                            (progn
+                              (setq file-name nil)
+                              (setq finished t))))))))))))))
+ 
+ 
