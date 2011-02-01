@@ -34,14 +34,27 @@
   (kbd "C-; a") 'unity-test-all)
 (define-key unity-mode-keymap
   (kbd "C-; d") 'unity-test-delta)
-
+ 
 (setq unity-temp-sensor-project-list
-      ;; order group position pattern                     path         
+      ;; order group position pattern              paths         
       '((0             '("Conductor" "_conductor") unity-src-dir)
         (1             '("Model" "_model")         unity-src-dir)
         (2             '("Hardware" "_hardware")   unity-src-dir)
         (3             '("Other" "_other")         unity-src-dir)
         (4             '("Interrupt" "_interrupt") unity-src-dir)))
+;;  name    included    order   prefixes        suffixes   extensions    locations
+;;          in 
+;;          primative
+;;          switch?
+
+(setq unity-temp-sensor-primatives-list
+'(('test    t           0       '("Test test_") '("")      '("c" "C")    '("Test/" "test/")        )
+  ('c-src   t           1       '("")           '("")      '("c" "C")    '("lib/" "src/")          )
+  ('asm-src t           2       '("")           '("")      '("s" "asm")  '("asm/" "src/")          )
+  ('c-inc   t           3       '("")           '("")      '("h" "H")    '("inc/" "src/" "lib/")   )
+  ('org     f           4       '("")           '("")      '("org")      '(c-test-dir "./" "docs/"))
+  ('yml     f           5       '("")           '("")      '("yml")      '(c-test-dir)             )))
+
 ;; setq unity-temp-sensor-project-list
 ;;       ;; order group position pattern                     path         
 ;;       '((0     2     3        '("Conductor" "_conductor") unity-src-dir)
@@ -78,6 +91,7 @@
 (defvar unity-temp-buffer "*Unity-Buffer*")
 (defvar unity-setup-performed-p nil)
 (defvar unity-ruby-file-extension ".rb")
+
 ;;; setq...
 
 (setq unity-buffer-heading-message
@@ -144,12 +158,14 @@ Unit testing integration"
              (switch-to-buffer  (file-name-nondirectory unity-last-buffer))))))
 
 (defun unity-replace-regex-in-string (regex replaced string)
+  "case sensitive replace-regexp-in-string replacement"
   (let ((case-fold-search nil)
         (case-replace nil))
     (replace-regexp-in-string
      regex replaced string t t nil nil)))
 
 (defun unity-file-prefix (file-type)
+  "case sensitive replace-regexp-in-string replacement"
   (cond ((equal file-type "test-file")
          unity-test-file-prefix)
         ((or (equal file-type "src-file")
@@ -164,6 +180,7 @@ Unit testing integration"
              "in unity-file-prefix"))))
 
 (defun unity-file-suffix (file-type)
+  "Returns suffix matching FILE-TYPE such as test-file"
   (cond ((or (equal file-type "test-file")
              (equal file-type "src-file")
              (equal file-type "header-file"))
@@ -210,34 +227,9 @@ Unit testing integration"
   `(,unity-model-file-suffix
     ,unity-conductor-file-suffix
     ,unity-hardware-file-suffix))
-
-(defun unity-get-suffix (file-type)
-  (cond ((equal "conductor-type" file-type)
-         unity-conductor-file-suffix)
-        ((equal "model-type" file-type)
-         unity-model-file-suffix)
-        ((equal "hardware-type" file-type)
-         unity-hardware-file-suffix)
-        ( t  (unity-error-with-param
-              "Invalid file-type"
-              file-type
-              "in unity-get-suffix"))))
-
-(defun unity-file-extension (file-type)
-  (cond ((equal file-type "header-file")
-         unity-header-file-extension)
-        ((or (equal file-type "src-file")
-             (equal file-type "test-file")
-             (equal file-type "model-file")
-             (equal file-type "conductor-file")
-             (equal file-type "hardware-file"))
-         unity-src-file-extension)
-        ( t (unity-error-with-param
-             "Invalid file-type"
-             file-type
-             "in unity-file-extension!"))))
  
 (defun unity-string-exact-match (regex string &optional start)
+  "case sensative version of string-match"
   (let ((case-fold-search nil)
         (case-replace nil))
     (if(and (equal regex "")
@@ -294,11 +286,6 @@ Unit testing integration"
 (defun unity-is-header-file-p (file-name)
   "Returns true if the file is a header file"
   (unity-is-file-type-p file-name "header-file"))
-
-(defun unity-get-suffix-file-type(suffix)
-  (if (equal suffix "")
-      "non-pattern-file"
-    (concat (downcase suffix) "-file")))
 
 (defun unity-check-prefix-p (file-name file-type)
   (let ((prefix
@@ -681,6 +668,7 @@ such as \"str-type\"."
     file-name)))
 
 (defun unity-dest-file-type (switch-type)
+  "Returns SWITCH-TYPE as in \"src-to-header \" with \" header-type\""
   (concat
    (unity-replace-regex-in-string "^.*-" "" switch-type)
    "-type"))
@@ -696,7 +684,7 @@ such as \"str-type\"."
             "Invalid file-type"
             file-type
             "in unity-select-path"))))
-
+  
 (defun unity-switch-buffer (file-name switch-type &optional test)
   (let ((temp-name
          (unity-switch-file-name
@@ -713,7 +701,7 @@ such as \"str-type\"."
             temp-name)))
       (setq temp-name nil))
     temp-name))
- 
+
 (defun unity-switch-file-name (file-name switch-type)
   (cond ((string= switch-type "test-to-src")
          (unity-create-src-file-name file-name))
@@ -762,7 +750,7 @@ such as \"str-type\"."
            (setq ext ""))
           ((equal ext "")
            (setq ext ""))
-          (t (unity-error-with-param
+          (t (unity-errorwith-param
               "Invalid extension "
               ext
               "in unity-read-extension")))
@@ -876,6 +864,7 @@ ATTRIB-TYPE attribute type (string)
         (temp-name nil)
         (switch-direction-list
          (unity-switch-direction-list file-name)))
+
     (mapcar (lambda (x)
               (setq temp (length switch-direction-list))
               (while (and
@@ -897,8 +886,9 @@ ATTRIB-TYPE attribute type (string)
 ;;  (error (unity-buffer-name-nondirectory-or-test-file test-file))
   (unity-find-and-switch-buffer
    (unity-buffer-name-nondirectory-or-test-file
+    
     test-file)test-file))
-
+ 
 (defun unity-cycle-MCH-buffer (&optional test-file)
   "Cycle between model conductor and hardware buffers "
   (interactive)
@@ -931,20 +921,19 @@ ATTRIB-TYPE attribute type (string)
       (cond ((equal search-direction "ascending")
              (setq return-val
                    (unity-search-buffer
-                    idx file-name "higher" search-direction))
+                    idx file-name "higher" search-direction test))
              (if(not return-val)
-                 (setq return-val (unity-search-buffer
+                 (setq return-val (unity-search-buffer 
                                    idx file-name "lower"
-                                   search-direction))))
+                                   search-direction test))))
             ((equal search-direction "descending")
              (setq return-val
                    (unity-search-buffer
-                    idx file-name "lower"
-                    search-direction))
+                    idx file-name "lower" search-direction test))
              (if(not return-val)
                  (setq return-val
                        (unity-search-buffer
-                        idx file-name "higher" search-direction))))
+                        idx file-name "higher" search-direction test))))
             ( t (unity-error-with-param
                  "Invalid search-direction"
                  search-direction
@@ -1269,4 +1258,40 @@ PATTERN is the pattern to use"
                               (setq file-name nil)
                               (setq finished t))))))))))))))
  
- 
+(defun unity-get-primative (order)
+  "Return primative list for given ORDER. Return nil if doesn't exist"
+  (if (< order 0)
+      (unity-error-with-param "Negative order" order "unity-get-primative")
+    (nth order  unity-temp-sensor-primatives-list)))
+  
+;;'('test t 0 '("Test test_") '("") '("c" "C") '("Test/" "test/") )
+
+(defun unity-get-next-primative (last-primative, direction)
+"Return next primative list relative to LAST-PRIMATIVE, where
+DIRECTION is 'up or 'down and CURRENT-PRIMATIVE is an ORDER (intitally
+nil). If switch? in list is nil looks for next primative list. Returns nil if
+no primatives found."
+)
+
+(setq unity-primative-elements
+      '('name 'switch? 'order 'prefixes 'suffixes 'extensions 'locations))
+
+(defun get-primative-element-for-idx (count)
+  (cadr (nth count unity-primative-elements)))
+
+(defun unity-get-primative-element (element list)
+"Returns primative-element in LIST. ELEMENT is a symbol representing the element in question"
+
+(let ((return-val nil)
+      (list-length (length unity-primative-elements))
+      (count 0))
+  (while (and (< count list-length)
+              (not return-val))
+    (when (equal
+           element
+           (get-primative-element-for-idx count))
+      (setq return-val (nth count list)))
+    (setq count (+ count 1)))
+  return-val)
+)
+  

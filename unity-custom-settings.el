@@ -2,16 +2,18 @@
   "The command for rake"
   :type 'string
   :group 'unity-mode)
-(defcustom unity-project-root-dir
-  "./ceedling/trunk/examples/temp_sensor/"
-  "Project Root Directory"
-:type 'string
-:group 'unity-mode)
+
+(customize-save-variable unity-project-root-dir
+  "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
+  )
+
 (defcustom unity-ceedling-root-dir
-  (concat unity-project-root-dir "./ceedling/trunk/")
+  (concat unity-project-root-dir   "~/.emacs.d/martyn/martyn/unity-mode/ceedling/trunk/"
+)
   "Ceedling Root Directory"
   :type 'string
   :group 'unity-mode)
+
 (defcustom unity-unity-root-dir
   (concat unity-ceedling-root-dir "vendor/unity/")
           "Unity Root Directory"
