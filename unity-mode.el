@@ -42,26 +42,21 @@
         (2             '("Hardware" "_hardware")   unity-src-dir)
         (3             '("Other" "_other")         unity-src-dir)
         (4             '("Interrupt" "_interrupt") unity-src-dir)))
-;;  name    included    order   prefixes        suffixes   extensions    locations
+
+(setq unity-project-root-dir "~/.emacs.d/martyn/martyn/unity-mode/")
+;;  name    included order prefixes suffixes extensions locations
 ;;          in 
 ;;          primative
 ;;          switch?
-
 (setq unity-temp-sensor-primatives-list
-'(('test    t           0       '("Test test_") '("")      '("c" "C")    '("Test/" "test/")        )
-  ('c-src   t           1       '("")           '("")      '("c" "C")    '("lib/" "src/")          )
-  ('asm-src t           2       '("")           '("")      '("s" "asm")  '("asm/" "src/")          )
-  ('c-inc   t           3       '("")           '("")      '("h" "H")    '("inc/" "src/" "lib/")   )
-  ('org     f           4       '("")           '("")      '("org")      '(c-test-dir "./" "docs/"))
-  ('yml     f           5       '("")           '("")      '("yml")      '(c-test-dir)             )))
-
-;; setq unity-temp-sensor-project-list
-;;       ;; order group position pattern                     path         
-;;       '((0     2     3        '("Conductor" "_conductor") unity-src-dir)
-;;         (1     2     3        '("Model" "_model")         unity-src-dir)
-;;         (2     2     3        '("Hardware" "_hardware")   unity-src-dir)
-;;         (3     2     3        '("Other" "_other")         unity-src-dir)
-;;         (4     2     3        '("Interrupt" "_interrupt") unity-src-dir)))
+      '(('test1 t 0 '( "Test" "test_") '("") '("c" "C") '("Test/" "test/"))
+        ('test2 t 1 '("") '("-tests" "_spec") '("el" "rb") '("./" "test/" "Test/"))
+  ('c-src t   2 '("")             '("")               '("c" "C") '("lib/" "src/"))
+  ('lisp-src t 3 '("")   '("")   '("el") '("./" "src/"))
+  ('asm-src t 4 '("")             '("")               '("s" "asm")'("asm/" "src/"))
+  ('c-inc   t 5 '("")             '("")    '("h" "H") '("inc/" "src/" "lib/"))
+  ('org    t   6 '("")             '("")    '("org")   '( "./" "docs/"))
+  ('yml nil   7 '("")             '("")    '("yml")   '("./")           )))
 
 (setq unity-dev-project-list
       ;; order patterns                    path
@@ -854,41 +849,10 @@ ATTRIB-TYPE attribute type (string)
          (list "src-to-header" "src-to-test"))
         ((unity-is-header-file-p file-name)
          (list "header-to-test" "header-to-src"))
-        (t ((error
-             (concat
-              "No relevant cycle found for"
-              file-name))))))
-
-(defun unity-find-and-switch-buffer (file-name &optional test)
-  (let ((temp t)
-        (temp-name nil)
-        (switch-direction-list
-         (unity-switch-direction-list file-name)))
-
-    (mapcar (lambda (x)
-              (setq temp (length switch-direction-list))
-              (while (and
-                      (> temp 0)
-                      (not temp-name))
-                (setq temp-name
-                      (unity-switch-buffer
-                       file-name x test))
-                (setq temp (- temp 1))))
-            switch-direction-list)
-    
-    (if(not temp-name)
-        (error "No matching pattern files found!"))
-    temp-name))
-
-(defun unity-cycle-test-src-header-buffer (&optional test-file)
-  "Toggle between test source file "
-  (interactive)
-;;  (error (unity-buffer-name-nondirectory-or-test-file test-file))
-  (unity-find-and-switch-buffer
-   (unity-buffer-name-nondirectory-or-test-file
-    
-    test-file)test-file))
- 
+        (t (error
+            (concat  "No relevant cycle found for "
+                     file-name )))))
+  
 (defun unity-cycle-MCH-buffer (&optional test-file)
   "Cycle between model conductor and hardware buffers "
   (interactive)
@@ -1202,8 +1166,6 @@ PATTERN is the pattern to use"
         (setq i (+ i 1))))
     pattern))
 
-(provide 'unity-mode)
-
 (defun unity-test (file-name patterns &optional test)
   (let ((current-index
          (unity-extract-pattern-index-from-file-name file-name unity-temp-sensor-project-list))
@@ -1258,40 +1220,372 @@ PATTERN is the pattern to use"
                               (setq file-name nil)
                               (setq finished t))))))))))))))
  
-(defun unity-get-primative (order)
+(defun unity-get-primative (list order)
   "Return primative list for given ORDER. Return nil if doesn't exist"
   (if (< order 0)
       (unity-error-with-param "Negative order" order "unity-get-primative")
-    (nth order  unity-temp-sensor-primatives-list)))
+    (nth order list)))
   
-;;'('test t 0 '("Test test_") '("") '("c" "C") '("Test/" "test/") )
-
-(defun unity-get-next-primative (last-primative, direction)
+(defun unity-get-next-primative (list last-primative direction)
 "Return next primative list relative to LAST-PRIMATIVE, where
 DIRECTION is 'up or 'down and CURRENT-PRIMATIVE is an ORDER (intitally
 nil). If switch? in list is nil looks for next primative list. Returns nil if
 no primatives found."
-)
+(let ((primative nil)
+      (list-size (length list))
+      (return-val nil))
+  (let ((count  
+         (cond ((not last-primative)
+                (setq last-primative (- list-size 1))
+                0)
+               ((>= last-primative (- list-size 1))
+                (setq last-primative (- list-size 1))
+                0)
+               (t
+                (+ last-primative 1)))))
+  
+    (while (and (not (equal last-primative (mod count list-size)))
+                (not return-val))
+      (setq primative (unity-get-primative list (mod count list-size)))
+      (when (unity-requires-cycling-p primative)
+        (setq return-val primative))
+      (setq count (+ count 1))))
+  return-val))
 
 (setq unity-primative-elements
       '('name 'switch? 'order 'prefixes 'suffixes 'extensions 'locations))
 
-(defun get-primative-element-for-idx (count)
-  (cadr (nth count unity-primative-elements)))
+(defun unity-get-primative-element-for-idx (list count)
+  (cadr (nth count list)))
 
 (defun unity-get-primative-element (element list)
-"Returns primative-element in LIST. ELEMENT is a symbol representing the element in question"
+  "Returns primative-element in LIST. ELEMENT is a symbol representing the element in question"
 
-(let ((return-val nil)
-      (list-length (length unity-primative-elements))
-      (count 0))
-  (while (and (< count list-length)
-              (not return-val))
-    (when (equal
-           element
-           (get-primative-element-for-idx count))
-      (setq return-val (nth count list)))
-    (setq count (+ count 1)))
-  return-val)
-)
+  (let ((return-val nil)
+        (list-length (length list))
+        (count 0))
+    (while (and (< count list-length)
+                (not return-val))
+      (when (equal
+             element
+             (unity-get-primative-element-for-idx
+              unity-primative-elements count))
+        (setq return-val (nth count list)))
+      (setq count (+ count 1)))
+  return-val))
   
+ (defun unity-requires-cycling-p (list)
+   (unity-get-primative-element 'switch? list))
+  
+(defun unity-cycle-test-src-header-buffer (&optional test-file)
+  "Toggle between test source file "
+  (interactive)
+;;  (error (unity-buffer-name-nondirectory-or-test-file test-file))
+  (unity-find-and-switch-buffer
+   (unity-buffer-name-nondirectory-or-test-file
+    
+    test-file)test-file))
+
+(defun unity-find-and-switch-buffer (file-name &optional test)
+  (let ((temp t)
+        (temp-name nil)
+        (switch-direction-list
+         (unity-switch-direction-list file-name)))
+
+    (mapcar (lambda (x)
+              (setq temp (length switch-direction-list))
+              (while (and
+                      (> temp 0)
+                      (not temp-name))
+                (setq temp-name
+                      (unity-switch-buffer
+                       file-name x test))
+                (setq temp (- temp 1))))
+            switch-direction-list)
+    
+    (if(not temp-name)
+        (error "No matching pattern files found!"))
+    temp-name))
+
+(defun unity-get-primative-affixes (list affix)
+   (let ((list-length (length list))
+          (count 0)
+          (return-val))
+     (while (< count list-length)
+       (let ((primative (unity-get-primative list count)))
+         (let ((temp (unity-get-primative-element affix primative)))
+           (if (and temp
+                    (not (equal temp ''(""))))
+               (setq return-val (cons return-val (cdr temp))))
+           (setq count (+ count 1))))) 
+     (cadr return-val)))
+
+;; (defun unity-cycle-primatives (list direction &optional test-file)
+;;   "Toggle primatives. Primatives could be test-file src-file inc-file etc"
+;;   (interactive)
+;;   (let ((stripped-name (unity-strip-primative-name "Testfile.c" list))
+;;         (count 0)
+;;         (list-length (length list))
+;;         (file-name))
+;;     (while (< count list-length)
+;;       (let ((primative (unity-get-primative list count)))
+;;         ;; iterate over prefixes...
+;;         (iterate-over-x stripped-name)
+;;         (setq count (+ count 1))))))
+
+;;   ;; (defun unity-build-pattern-file-name (file-name old-pattern new-pattern)
+;;   ;;   (let ((ext (file-name-extension file-name)))
+;;   ;;     (let ((file-name
+;;   ;;            (unity-replace-regex-in-string
+;;   ;;             (concat old-pattern "$")
+;;   ;;             new-pattern
+;;   ;;             (file-name-sans-extension file-name))))
+;;   ;;       (concat file-name "." ext))))
+
+;;   ;; name included order prefixes suffixes extensionslocations
+ 
+(defun unity--strip-prefix (x file-name)
+  (unity-replace-regex-in-string
+   (concat  "^" x) "" file-name))
+
+(defun unity--strip-suffix (x file-name)
+  (let ((ext (file-name-extension file-name)))
+    (setq file-name (file-name-sans-extension file-name))
+    (setq file-name
+          (unity-replace-regex-in-string
+           (concat x "$") "" (file-name-sans-extension file-name)))))
+
+(defun unity-iterate-over-list (list function extras)
+  (mapcar (lambda (x) ;; iterate over extensions 
+              (setq extras (funcall function x extras))) 
+            list) extras)
+
+(defun unity-strip-primative-name (file-name primative-list)
+  (unity-iterate-over-list
+   (unity-get-primative-affixes primative-list 'prefixes)
+   'unity--strip-prefix
+   (unity-iterate-over-list
+    (unity-get-primative-affixes primative-list 'suffixes)
+    'unity--strip-suffix file-name)))
+
+(defun unity-strip-primative-prefix (file-name primative-list)
+  (let ((sans-prefix
+         (unity-iterate-over-list
+          (unity-get-primative-affixes primative-list 'prefixes)
+          'unity--strip-prefix
+          file-name)))
+    (unity-replace-regex-in-string
+     sans-prefix "" file-name)))
+
+(defun  unity-strip-primative-suffix (file-name primative-list)
+  (let ((sans-suffix
+         (unity-iterate-over-list
+          (unity-get-primative-affixes primative-list 'suffixes)
+          'unity--strip-suffix
+          file-name)))
+    (unity-replace-regex-in-string
+     sans-suffix "" (file-name-sans-extension file-name))))
+
+(defun unity-construct-name-from-primatives (base-name prefix suffix ext)
+        (concat prefix
+                base-name
+                suffix
+                (if ext
+                    (concat "." ext)
+                  "")))
+
+(defun unity-get-full-path (file-name directory)
+  (concat unity-project-root-dir
+          directory
+          file-name))
+
+(defun unity-find-buffer (base-name prefix suffix ext directory)
+  (let ((file-name
+         (unity-get-full-path
+          (unity-construct-name-from-primatives
+           base-name prefix suffix ext)
+          directory)))
+;;   (error file-name) 
+    (file-exists-p file-name)))
+ 
+(defun unity-open-buffer (base-name prefix suffix ext directory &optional test)
+  (let ((file-name
+         (unity-get-full-path
+          (unity-construct-name-from-primatives
+           base-name prefix suffix ext)
+          directory)))
+    (if (not test)
+        (find-file file-name)
+      (file-readable-p file-name))))
+
+(defun unity--match-primative-name-prefix (file-name prefix)
+  "returns t if PREFIX is a prefix in FILE-NAME, else nil"
+  (let ((case-fold-search nil)
+        (case-replace nil))
+    (if (string-match
+         (concat "^" prefix)
+         file-name)
+        t
+      nil)))
+
+(defun unity--match-primative-name-suffix (file-name suffix)
+  "returns t if SUFFIX is a suffix in FILE-NAME, else nil"
+  (let ((case-fold-search nil)
+        (case-replace nil)) 
+    (if (string-match
+         (concat suffix "$")
+         (file-name-sans-extension file-name)) t nil)))
+
+(defun unity--match-primative-name-extension (file-name suffix)
+  "returns t if SUFFIX is a suffix in FILE-NAME, else nil"
+  (let ((case-fold-search nil)
+        (case-replace nil)) 
+    (if (string-match
+         (concat suffix "$")
+         (file-name-sans-extension file-name)) t nil)))
+
+(defun unity--get-primative-idx-for-prefix (file-name primative-list)
+  ((let ((prefixes unity-get-primative-affixes 
+                   unity-temp-sensor-primatives-list 'prefixes)
+         (count nil))
+     (mapcar lambda (x)
+             (if unity--match-primative-name-prefix file-name x
+                 (setq return-val count))
+           prefixes))))
+
+(defun unity-is-primative-idx (name primative-list)
+  "Check for a match of NAME and primative attributes supplied in
+PRIMATIVE-LIST Return index if match found"
+
+  ((let ((prefixes unity-get-primative-affixes 
+                   unity-temp-sensor-primatives-list 'prefixes)
+         (suffixes unity-get-primative-affixes
+                   unity-temp-sensor-primatives-list 'suffixes)
+         (count 0)
+         (prefix-count)
+         (suffix-count)
+         (list-length (length primative-list)))
+     (while (< count list-length)
+       ))))
+
+(defun unity--is-primative-element-match (element primative-list)
+  (let (( return-val nil))
+    (mapcar (lambda (x)
+              (when (equal x element)
+                (setq return-val t)))
+            primative-list)
+    return-val))
+
+(defun unity-find-primative (file-name primative-list)
+  "Returns index of primative match to FILE-NAME or nil if a match can't
+be found."
+ 
+  (let ((name (unity-strip-primative-name file-name primative-list))
+        (prefix (unity-strip-primative-prefix file-name primative-list))
+        (suffix (unity-strip-primative-suffix file-name primative-list))
+        (ext (file-name-extension file-name))
+        (list-length (length primative-list))
+        (count 0)
+        (return-val nil))
+  
+    (while (and (< count list-length)
+                (not return-val))
+           (let ((primative (unity-get-primative
+                             primative-list
+                             count)))
+             (if
+                 (and
+                  (unity--is-primative-element-match
+                   prefix
+                   (cadr (unity-get-primative-element 'prefixes primative)))
+                  (unity--is-primative-element-match
+                   suffix
+                   (cadr (unity-get-primative-element 'suffixes primative)))
+                  (unity--is-primative-element-match
+                   ext
+                   (cadr (unity-get-primative-element 'extensions primative))))
+                 (setq return-val count)
+               (setq count (+ count 1)))))
+    return-val))
+
+(defun  unity-find-a-primative-match (name current-idx primative-list direction)
+  (let ((count) (prefix-count) (suffix-count) (ext-count) (dir-count)
+        (list-length (length primative-list))
+        (return-val nil)
+        (prefix)
+        (suffix)
+        (ext)
+        (dir)
+        (dir-fn
+         (if (equal direction 'forward) '+ '-)))
+    (setq count (mod (funcall dir-fn current-idx 1) list-length))
+    
+    (while(and (not (equal count current-idx))
+               (not return-val))
+      (let ((primative (unity-get-primative
+                        unity-temp-sensor-primatives-list count)))
+        (when (unity-requires-cycling-p primative-list)
+          (let ((prefixes (unity-get-primative-element
+                           'prefixes primative)))
+            (let ((prefix-list-length (length prefixes)))
+              (setq prefix-count 0)
+              (while (and  (< prefix-count prefix-list-length)
+                           (not return-val))
+                (setq prefix (nth prefix-count (cadr prefixes)))
+                (let ((suffixes (unity-get-primative-element
+                                 'suffixes primative)))
+                  (let ((suffix-list-length (length suffixes)))
+                    (setq suffix-count 0)
+                    (while (and (< suffix-count suffix-list-length)
+                                (not return-val))
+                      (setq suffix (nth suffix-count (cadr suffixes)))
+                      (let ((exts (unity-get-primative-element
+                                   'extensions primative)))
+                        (let ((ext-list-length (length exts)))
+                          (setq ext-count 0)
+                          (while (and (< ext-count ext-list-length)
+                                      (not return-val))
+                            (setq ext (nth ext-count (cadr exts)))
+                            (let ((dirs (unity-get-primative-element
+                                         'locations primative)))
+                              (let ((dir-list-length (length dirs)))
+                                (setq dir-count 0)
+                                (while (and (< dir-count dir-list-length)
+                                            (not return-val))
+                                  (setq dir (nth dir-count (cadr dirs)))
+                                (when(unity-find-buffer name prefix suffix ext dir)
+                                    (setq return-val (unity-get-full-path
+                                           (unity-construct-name-from-primatives
+                                            name prefix suffix ext)dir)))
+                                  (setq dir-count (+ dir-count 1)))
+                                (setq ext-count (+ ext-count 1)))))
+                          (setq suffix-count  (+ suffix-count 1)))))
+                    (setq prefix-count (+ prefix-count 1)))))
+              (setq count (mod (funcall dir-fn count 1) list-length)))))))
+    return-val))
+
+
+(defun unity-find-and-open-a-primative-match (direction
+                                              &optional test-file)
+  "Cycle between primatives (such as test source header)"
+  (let ((file-name (unity-buffer-name-nondirectory-or-test-file test-file)))
+    (let ((current-idx (unity-find-primative
+                        file-name
+                        unity-temp-sensor-primatives-list)))
+      (setq file-name (unity-strip-primative-name
+                       file-name
+                       unity-temp-sensor-primatives-list))
+      (setq file-name (unity-find-a-primative-match
+                       file-name current-idx
+                       unity-temp-sensor-primatives-list 
+                       direction))
+      (if (not test-file) (find-file file-name) file-name))))
+
+(defun unity-find-and-open-a-primative-match-forward (&optional test-file)
+  (interactive)
+  (unity-find-and-open-a-primative-match 'forward test-file))
+(defun unity-find-and-open-a-primative-match-reverse (&optional test-file)
+  (interactive)
+  (unity-find-and-open-a-primative-match 'reverse test-file))
+
+  (provide 'unity-mode)

@@ -1218,6 +1218,7 @@ task :default => [:clobber, 'test:all']\n\n"
                  (unity-find-and-open-a-primative-match
                   'forward "TestAdcConductor.c")))
   )
+
 (ert-deftest unity-find-and-open-a-primative-match-reverse-test ()
   (should (equal (concat unity-project-root-dir "test/TestAdcConductor.c")
                  (unity-find-and-open-a-primative-match
